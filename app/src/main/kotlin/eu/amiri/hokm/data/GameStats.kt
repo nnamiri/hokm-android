@@ -3,6 +3,7 @@ package eu.amiri.hokm.data
 import android.content.Context
 import android.content.SharedPreferences
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.math.max
 import kotlin.math.roundToInt

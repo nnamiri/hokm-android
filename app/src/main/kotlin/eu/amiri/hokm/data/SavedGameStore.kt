@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import eu.amiri.hokm.engine.BotDifficulty
 import eu.amiri.hokm.engine.GameState
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
