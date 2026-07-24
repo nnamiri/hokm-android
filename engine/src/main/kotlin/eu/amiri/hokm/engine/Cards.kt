@@ -1,6 +1,9 @@
 package eu.amiri.hokm.engine
 
+import kotlinx.serialization.Serializable
+
 /** The four French suits used in Hokm. */
+@Serializable
 enum class Suit(val symbol: String) {
     SPADES("♠"),
     HEARTS("♥"),
@@ -11,6 +14,7 @@ enum class Suit(val symbol: String) {
 }
 
 /** Card ranks; ace is high in Hokm. The numeric [value] is 2..14. */
+@Serializable
 enum class Rank(val value: Int) {
     TWO(2), THREE(3), FOUR(4), FIVE(5), SIX(6), SEVEN(7), EIGHT(8), NINE(9), TEN(10),
     JACK(11), QUEEN(12), KING(13), ACE(14);
@@ -23,6 +27,7 @@ enum class Rank(val value: Int) {
 }
 
 /** A single playing card. */
+@Serializable
 data class Card(val rank: Rank, val suit: Suit) {
     val id: String get() = "${rank.value}-${suit.name.lowercase()}"
     override fun toString(): String = "${rank.symbol}${suit.symbol}"

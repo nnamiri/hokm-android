@@ -1,13 +1,21 @@
 package eu.amiri.hokm.engine
 
+import kotlinx.serialization.Serializable
+
 /**
  * What the hakem declared for this hand. Besides the four trump suits the
  * hakem may always call "high" (normal ranking, no trump) or "low" (inverted
  * ranking, no trump – the two beats the ace).
  */
+@Serializable
 sealed interface TrumpChoice {
+    @Serializable
     data class OfSuit(override val suit: Suit) : TrumpChoice
+
+    @Serializable
     data object High : TrumpChoice
+
+    @Serializable
     data object Low : TrumpChoice
 
     /** The trump suit, when one exists (classic variant only). */
@@ -22,6 +30,7 @@ sealed interface TrumpChoice {
  * 7 tricks worth 1 point, a 7–0 sweep ("kut") is worth 2, sweeping the hakem's
  * team ("hakem kut") is worth 3. First team to 7 points wins.
  */
+@Serializable
 data class HokmRules(
     val tricksToWinHand: Int = 7,
     val pointsToWinGame: Int = 7,
@@ -36,6 +45,7 @@ data class HokmRules(
  * Two-player draw turn outcome: both cards are shown openly to the drawer –
  * nothing is discarded or taken "blind".
  */
+@Serializable
 data class DrawResult(
     val seat: Seat,
     val taken: Card,
@@ -51,17 +61,29 @@ enum class HokmErrorKind { INVALID_PHASE, NOT_HAKEM, NOT_YOUR_TURN, CARD_NOT_IN_
 class HokmException(val kind: HokmErrorKind) : Exception(kind.name)
 
 /** The lifecycle of a game. */
+@Serializable
 sealed interface GamePhase {
+    @Serializable
     data object ChoosingTrump : GamePhase
+
     /** Two-player only: both players discard 2 of their first 4 cards. */
+    @Serializable
     data object Discarding : GamePhase
+
     /** Two-player only: alternating draw turns until the stock is empty. */
+    @Serializable
     data object Drawing : GamePhase
+
     /** Trick play is in progress. */
+    @Serializable
     data object Playing : GamePhase
+
     /** A hand ended; waiting to deal the next one. */
+    @Serializable
     data class HandOver(val winner: Team) : GamePhase
+
     /** A team reached the required points. */
+    @Serializable
     data class GameOver(val winner: Team) : GamePhase
 }
 

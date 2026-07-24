@@ -1,7 +1,10 @@
 package eu.amiri.hokm.engine
 
+import kotlinx.serialization.Serializable
+
 /** One trick: up to four cards played in seat order starting at [leader]. */
 class Trick(val leader: Seat) {
+    @Serializable
     data class Play(val seat: Seat, val card: Card)
 
     private val _plays = mutableListOf<Play>()

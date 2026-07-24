@@ -1,9 +1,12 @@
 package eu.amiri.hokm.engine
 
+import kotlinx.serialization.Serializable
+
 /**
  * The four positions at the table. Turn order follows [next]
  * (south → west → north → east), matching Hokm's counter-clockwise play.
  */
+@Serializable
 enum class Seat(val index: Int) {
     SOUTH(0), WEST(1), NORTH(2), EAST(3);
 
@@ -17,6 +20,7 @@ enum class Seat(val index: Int) {
 }
 
 /** The two partnerships: south/north vs. west/east. */
+@Serializable
 enum class Team {
     ONE, TWO;
 

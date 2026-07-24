@@ -82,6 +82,50 @@ class HokmGame {
         deal(seed)
     }
 
+    /** Restores a game from a persisted [GameState] (see [state]). */
+    constructor(state: GameState) {
+        this.rules = state.rules
+        this.phase = state.phase
+        this.hakem = state.hakem
+        this.trumpChoice = state.trumpChoice
+        for ((seat, cards) in state.hands) hands[seat] = cards.toMutableList()
+        this.currentTrick = state.currentTrick.toTrick()
+        this.lastTrick = state.lastTrick?.toTrick()
+        _playedCards.addAll(state.playedCards)
+        trickCounts.putAll(state.trickCounts)
+        scores.putAll(state.scores)
+        this.turn = state.turn
+        this.handNumber = state.handNumber
+        this.revision = state.revision
+        undealt.addAll(state.undealt)
+        stock.addAll(state.stock)
+        this.revealedCard = state.revealedCard
+        _pendingDiscards.addAll(state.pendingDiscards)
+        this.lastDrawResult = state.lastDrawResult
+    }
+
+    /** The full state, ready to be persisted and passed back to the constructor. */
+    fun state(): GameState = GameState(
+        rules = rules,
+        phase = phase,
+        hakem = hakem,
+        trumpChoice = trumpChoice,
+        hands = hands.mapValues { it.value.toList() },
+        currentTrick = currentTrick.state(),
+        lastTrick = lastTrick?.state(),
+        playedCards = _playedCards.toList(),
+        trickCounts = trickCounts.toMap(),
+        scores = scores.toMap(),
+        turn = turn,
+        handNumber = handNumber,
+        revision = revision,
+        undealt = undealt.toList(),
+        stock = stock.toList(),
+        revealedCard = revealedCard,
+        pendingDiscards = _pendingDiscards.toList(),
+        lastDrawResult = lastDrawResult,
+    )
+
     /** Starts a hand mid-play with fixed hands and trump. Used by unit tests. */
     constructor(testHands: Map<Seat, List<Card>>, hakem: Seat, trump: Suit, rules: HokmRules = HokmRules()) {
         this.rules = rules

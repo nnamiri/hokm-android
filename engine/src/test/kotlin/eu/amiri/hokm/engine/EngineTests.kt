@@ -1,5 +1,7 @@
 package eu.amiri.hokm.engine
 
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -95,5 +97,46 @@ class EngineTests {
             else -> error("unreachable")
         }
         assertTrue((game.trickCounts()[winner] ?: 0) >= 7, "winner should hold at least 7 tricks")
+    }
+
+    @Test fun gameSurvivesAJsonRoundTrip() {
+        val game = HokmGame(firstHakem = Seat.WEST, seed = 4711)
+        game.chooseTrump(TrumpChoice.OfSuit(Suit.HEARTS), by = Seat.WEST)
+        game.play(game.legalCards(Seat.WEST).first(), from = Seat.WEST)
+        game.play(game.legalCards(Seat.NORTH).first(), from = Seat.NORTH)
+
+        val json = Json.encodeToString(game.state())
+        val restored = HokmGame(Json.decodeFromString<GameState>(json))
+
+        assertEquals(game.phase, restored.phase)
+        assertEquals(game.hakem, restored.hakem)
+        assertEquals(game.trumpChoice, restored.trumpChoice)
+        assertEquals(game.turn, restored.turn)
+        assertEquals(game.handNumber, restored.handNumber)
+        assertEquals(game.playedCards, restored.playedCards)
+        assertEquals(game.currentTrick.plays, restored.currentTrick.plays)
+        assertEquals(game.trickCounts(), restored.trickCounts())
+        assertEquals(game.scores(), restored.scores())
+        for (seat in Seat.entries) assertEquals(game.handOf(seat), restored.handOf(seat))
+
+        // The restored game keeps playing exactly where the original stopped.
+        val seat = restored.turn!!
+        restored.play(restored.legalCards(seat).first(), from = seat)
+        assertEquals(3, restored.currentTrick.plays.size)
+    }
+
+    @Test fun twoPlayerDrawStateSurvivesARoundTrip() {
+        val rules = HokmRules(playerCount = 2)
+        val game = HokmGame(firstHakem = Seat.SOUTH, rules = rules, seed = 8)
+        game.chooseTrump(TrumpChoice.Low, by = Seat.SOUTH)
+        game.discard(game.handOf(Seat.SOUTH).take(2), from = Seat.SOUTH)
+        game.discard(game.handOf(Seat.WEST).take(2), from = Seat.WEST)
+        assertEquals(GamePhase.Drawing, game.phase)
+
+        val json = Json.encodeToString(game.state())
+        val restored = HokmGame(Json.decodeFromString<GameState>(json))
+        assertEquals(game.stockCount, restored.stockCount)
+        assertEquals(game.revealedCard, restored.revealedCard)
+        assertEquals(TrumpChoice.Low, restored.trumpChoice)
     }
 }
