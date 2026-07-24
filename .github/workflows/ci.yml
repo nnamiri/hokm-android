@@ -6,6 +6,8 @@ on:
   pull_request:
   workflow_dispatch:
 
+# The Gradle wrapper is checked in, so CI builds with exactly the same Gradle
+# version as Android Studio does locally – no separate pin to keep in sync.
 jobs:
   engine-tests:
     name: Engine tests (JVM)
@@ -15,12 +17,10 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "21"
       - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: "8.9"
       - name: Run engine unit tests
-        run: gradle :engine:test --no-daemon --stacktrace
+        run: ./gradlew :engine:test --no-daemon --stacktrace
 
   app-build:
     name: App build (Android)
@@ -30,12 +30,8 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "21"
       - uses: android-actions/setup-android@v3
-      - name: Install SDK packages
-        run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
       - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: "8.9"
       - name: Assemble debug APK
-        run: gradle :app:assembleDebug --no-daemon --stacktrace
+        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
