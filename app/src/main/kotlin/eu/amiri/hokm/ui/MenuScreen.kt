@@ -39,20 +39,32 @@ import eu.amiri.hokm.SoloGameViewModel
 import eu.amiri.hokm.data.GameStats
 import eu.amiri.hokm.engine.BotDifficulty
 
+/** The areas reachable from the home screen. */
+private enum class MenuArea { HOME, STATISTICS, RULES, TUTORIAL }
+
 @Composable
 fun HokmApp(vm: SoloGameViewModel = viewModel()) {
-    var showStats by remember { mutableStateOf(false) }
+    var area by remember { mutableStateOf(MenuArea.HOME) }
+
+    // On the very first launch the tutorial opens by itself, as on iOS.
+    if (vm.needsTutorial) {
+        TutorialScreen(onFinish = vm::tutorialSeen)
+        return
+    }
 
     when {
         vm.started -> GameScreen(vm)
-        showStats -> StatisticsScreen(vm.stats, onReset = vm::resetStats) { showStats = false }
-        else -> MenuScreen(vm) { showStats = true }
+        area == MenuArea.STATISTICS ->
+            StatisticsScreen(vm.stats, onReset = vm::resetStats) { area = MenuArea.HOME }
+        area == MenuArea.RULES -> RulesScreen { area = MenuArea.HOME }
+        area == MenuArea.TUTORIAL -> TutorialScreen { area = MenuArea.HOME }
+        else -> MenuScreen(vm, onOpen = { area = it })
     }
 }
 
-/** Home screen: resume, new game, bot strength, player count, statistics. */
+/** Home screen: resume, new game, bot strength, player count, and the areas. */
 @Composable
-private fun MenuScreen(vm: SoloGameViewModel, onShowStats: () -> Unit) {
+private fun MenuScreen(vm: SoloGameViewModel, onOpen: (MenuArea) -> Unit) {
     var difficulty by remember { mutableStateOf(BotDifficulty.NORMAL) }
     var players by remember { mutableIntStateOf(4) }
 
@@ -134,11 +146,31 @@ private fun MenuScreen(vm: SoloGameViewModel, onShowStats: () -> Unit) {
                 }
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(20.dp))
 
-            OutlinedButton(onClick = onShowStats, modifier = Modifier.fillMaxWidth()) {
-                Text(De.STATISTICS, color = Color.White)
+            OutlinedButton(
+                onClick = { onOpen(MenuArea.RULES) },
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text(De.RULES, color = Color.White) }
+
+            Spacer(Modifier.height(8.dp))
+
+            OutlinedButton(
+                onClick = { onOpen(MenuArea.TUTORIAL) },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(De.TUTORIAL, color = Color.White)
+                    Text(De.TUTORIAL_SUB, color = Color.White.copy(alpha = 0.6f), fontSize = 11.sp)
+                }
             }
+
+            Spacer(Modifier.height(8.dp))
+
+            OutlinedButton(
+                onClick = { onOpen(MenuArea.STATISTICS) },
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text(De.STATISTICS, color = Color.White) }
         }
     }
 }

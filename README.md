@@ -25,6 +25,10 @@ Basiert auf dem Portierungsleitfaden aus dem iOS-Repo
     Zuordnung zum Sitz, Spielerplaketten mit Hakem-Krone, Zug-Hervorhebung
     und Kartenrücken-Fächer, kompakte Score-Leiste sowie Overlays für
     Trumpfansage, Abwurf (2 Spieler), Rundenende, Spielende und Pause.
+  - **Spielregeln**: das vollständige Regelwerk in sieben Abschnitten
+    (Spiel, Hakem, Hokm zu zweit, Stichspiel, Wertung, Hoch/Niedrig, App).
+  - **Tutorial**: fünf illustrierte Schritte zum Durchwischen, beim ersten
+    Start automatisch, danach jederzeit über das Menü.
   - **Statistik**: Spiele, Siege, Niederlagen, Siegquote, aktuelle und beste
     Serie, gewonnene Runden, Kut-Runden – in `SharedPreferences` persistiert.
   - **Spielstandspeicher**: Das laufende Solo-Spiel wird automatisch
@@ -50,6 +54,7 @@ Beim ersten Öffnen in Android Studio wird der Gradle-Wrapper erzeugt
 1. ✅ Engine → Kotlin (+ Tests)
 2. Compose-UI + vollständiger Solo-Modus
    - ✅ Kartendesign & Tischlayout, Statistik, Spielstandspeicher
+   - ✅ Spielregeln & Tutorial
    - 🔜 Wortmarke/App-Icon & Startscreen, Lokalisierung (en/fa + RTL),
      Sounds & Haptik
 3. Play Billing (Design-Paket), Play Games (Erfolge/Bestenliste)

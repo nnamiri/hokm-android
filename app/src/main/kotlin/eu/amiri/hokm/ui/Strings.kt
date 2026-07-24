@@ -65,6 +65,93 @@ object De {
     const val RESUME_PLAY = "Weiterspielen"
     const val MAIN_MENU = "Hauptmenü"
 
+    // Rules
+    const val RULES = "Spielregeln"
+    const val RULES_GAME_TITLE = "Das Spiel"
+    const val RULES_GAME_TEXT =
+        "Hokm (persisch: حکم, „Befehl“) ist das beliebteste Kartenspiel des Irans. " +
+            "Gespielt wird mit 52 Karten, das Ass ist die höchste. Zu viert bildet ihr zwei " +
+            "Teams – die Partner sitzen einander gegenüber. Zu zweit trittst du im direkten " +
+            "Duell an."
+    const val RULES_HAKEM_TITLE = "Der Hakem"
+    const val RULES_HAKEM_TEXT =
+        "Ein Spieler ist der Hakem (Gebieter). Er bestimmt die Trumpffarbe (Hokm) anhand " +
+            "seiner ersten Karten – fünf zu viert, vier zu zweit. Zu viert werden danach die " +
+            "restlichen Karten verteilt, bis alle 13 halten; zu zweit folgt die Ziehphase " +
+            "(siehe unten). Der Hakem spielt zum ersten Stich aus."
+    const val RULES_2P_TITLE = "Hokm zu zweit"
+    const val RULES_2P_TEXT =
+        "Beide Spieler erhalten 4 Karten; der Hakem sagt danach den Trumpf an, dann wirft " +
+            "jeder 2 Karten ab. Nun wird abwechselnd gezogen: Du siehst die oberste Karte – " +
+            "nimmst du sie, wird die nächste abgeworfen; wirfst du sie weg, nimmst du dafür " +
+            "die nächste. Beide Karten werden dir dabei offen gezeigt. Ist der Stapel leer " +
+            "(je 13 Karten), beginnt das normale Stichspiel bis 7 Stiche."
+    const val RULES_TRICK_TITLE = "Das Stichspiel"
+    const val RULES_TRICK_TEXT =
+        "Es muss immer die ausgespielte Farbe bedient werden. Wer nicht bedienen kann, darf " +
+            "trumpfen oder abwerfen. Den Stich gewinnt der höchste Trumpf, sonst die höchste " +
+            "Karte der angespielten Farbe. Der Gewinner eines Stichs spielt zum nächsten aus."
+    const val RULES_SCORING_TITLE = "Wertung"
+    const val RULES_SCORING_TEXT =
+        "Wer zuerst 7 Stiche gewinnt, holt die Runde und 1 Punkt. Gewinnt eine Seite alle 7 " +
+            "Stiche zu null („Kut“), gibt es 2 Punkte – geschieht das dem Hakem („Hakem-Kut“), " +
+            "sogar 3 Punkte. Verliert der Hakem die Runde, wandert die Rolle weiter. Wer zuerst " +
+            "7 Punkte erreicht, gewinnt das Spiel."
+    const val RULES_HIGH_LOW_TITLE = "Ansage: Hoch oder Niedrig"
+    const val RULES_HIGH_LOW_TEXT =
+        "Neben den vier Trumpffarben kann der Hakem auch „Hoch“ oder „Niedrig“ ansagen. Dann " +
+            "gibt es keinen Trumpf: Bei Hoch gilt die normale Reihenfolge (Ass ist am " +
+            "stärksten), bei Niedrig ist sie umgedreht – die Zwei sticht alles in ihrer Farbe. " +
+            "Es gewinnt immer die stärkste Karte der angespielten Farbe; abwerfen ist erlaubt, " +
+            "aber eine andere Farbe kann nie gewinnen. Wertung wie gewohnt."
+    const val RULES_APP_TITLE = "In dieser App"
+    const val RULES_APP_TEXT =
+        "Solo: Du spielst zu zweit im Duell gegen einen Bot oder zu viert mit einem " +
+            "Bot-Partner gegen zwei Bots – die Stärke wählst du im Menü. Dein laufendes Spiel " +
+            "wird automatisch gespeichert und wartet auf der Startseite auf dich."
+
+    // Tutorial
+    const val TUTORIAL = "Tutorial"
+    const val TUTORIAL_SUB = "Hokm in 5 Schritten lernen"
+    const val SKIP = "Überspringen"
+    const val NEXT = "Weiter"
+    const val LETS_GO = "Los geht's!"
+    const val TRUMP_LABEL = "Trumpf"
+    const val LED_LABEL = "angespielt"
+    const val TRUMP_BEATS = "Trumpf sticht!"
+    const val ROUND_WON_ROW = "Runde gewonnen"
+    const val KOT_ROW = "Kut (7:0)"
+    const val HAKEM_KOT_ROW = "Hakem-Kut (7:0)"
+    const val POINTS_ONE = "1 Punkt"
+    const val POINTS_TWO = "2 Punkte"
+    const val POINTS_THREE = "3 Punkte"
+    const val SOLO_WORD = "Solo"
+    const val SAVED_WORD = "Gespeichert"
+
+    const val OB1_TITLE = "Willkommen bei Hokm!"
+    const val OB1_TEXT =
+        "Hokm (حکم) ist das beliebteste Kartenspiel des Irans. Zu viert spielt ihr in zwei " +
+            "Teams – dein Partner sitzt dir gegenüber. Zu zweit trittst du im direkten Duell an."
+    const val OB2_TITLE = "Der Hakem bestimmt den Trumpf"
+    const val OB2_TEXT =
+        "Ein Spieler ist der Hakem (Gebieter). Er legt die Trumpffarbe anhand seiner ersten " +
+            "Karten fest – fünf zu viert, vier zu zweit. Am Ende hält jeder 13 Karten, und der " +
+            "Hakem spielt aus."
+    const val OB3_TITLE = "Farbe bedienen!"
+    const val OB3_TEXT =
+        "Du musst immer die angespielte Farbe bedienen, wenn du sie hast. Nur wenn du nicht " +
+            "bedienen kannst, darfst du trumpfen – oder eine andere Karte abwerfen. Der höchste " +
+            "Trumpf sticht alles."
+    const val OB4_TITLE = "7 Stiche gewinnen die Runde"
+    const val OB4_TEXT =
+        "Wer zuerst 7 Stiche holt, gewinnt die Runde (1 Punkt). Ein 7:0 heißt „Kut“ und bringt " +
+            "2 Punkte – geschieht es dem Hakem, sogar 3. Wer zuerst 7 Punkte hat, gewinnt das Spiel."
+    const val OB5_TITLE = "Bereit? Los geht's!"
+    const val OB5_TEXT =
+        "Starte solo gegen Bots – zu zweit oder zu viert, Stärke im Menü wählbar. Mit der " +
+            "Pause-Taste kannst du jederzeit unterbrechen – dein Spiel wird automatisch " +
+            "gespeichert und wartet auf dich."
+
     // Statistics
     const val STATISTICS = "Statistik"
     const val NO_GAMES_YET = "Noch keine Spiele – Zeit für die erste Runde!"

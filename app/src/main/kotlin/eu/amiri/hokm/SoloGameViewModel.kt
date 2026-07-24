@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import eu.amiri.hokm.data.GameStats
 import eu.amiri.hokm.data.SavedGame
 import eu.amiri.hokm.data.SavedGameStore
+import eu.amiri.hokm.data.SettingsStore
 import eu.amiri.hokm.data.StatsStore
 import eu.amiri.hokm.engine.AceDraw
 import eu.amiri.hokm.engine.BotDifficulty
@@ -39,6 +40,7 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
     private val humanSeat = Seat.SOUTH
     private val statsStore = StatsStore(app)
     private val saveStore = SavedGameStore(app)
+    private val settings = SettingsStore(app)
 
     private var game: HokmGame? = null
     private var difficulty = BotDifficulty.NORMAL
@@ -60,6 +62,15 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
         private set
     var canResume by mutableStateOf(saveStore.hasSavedGame)
         private set
+
+    /** True until the tutorial has been seen once – it then opens on first launch. */
+    var needsTutorial by mutableStateOf(!settings.hasSeenTutorial)
+        private set
+
+    fun tutorialSeen() {
+        settings.hasSeenTutorial = true
+        needsTutorial = false
+    }
 
     fun newGame(players: Int, diff: BotDifficulty) {
         botJob?.cancel()
