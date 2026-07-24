@@ -1,0 +1,4 @@
+<resources>
+    <!-- Minimal theme; the UI itself is drawn with Compose Material 3. -->
+    <style name="Theme.Hokm" parent="android:Theme.Material.NoActionBar" />
+</resources>
