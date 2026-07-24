@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,7 +38,10 @@ fun GameScreen(vm: SoloGameViewModel) {
     FeltBackground {
         Column(Modifier.fillMaxSize().padding(horizontal = 12.dp)) {
             Row(
-                Modifier.fillMaxWidth().padding(top = 10.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(top = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
@@ -115,7 +120,11 @@ fun GameScreen(vm: SoloGameViewModel) {
                 legalCards = snapshot.legalCards.toSet(),
                 isMyTurn = snapshot.isMyTurn && snapshot.phase == GamePhase.Playing,
                 onPlay = vm::play,
-                modifier = Modifier.fillMaxWidth().height(158.dp).padding(bottom = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .height(158.dp)
+                    .padding(bottom = 8.dp),
             )
         }
 
