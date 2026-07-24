@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -27,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -202,27 +204,141 @@ fun DiscardPicker(
     }
 }
 
-/** Two-player draw turn: take the revealed card, or throw it away. */
+/**
+ * The centre of the table during the two-player draw phase: the stock pile
+ * plus the revealed card. The current drawer takes it – or rejects it and
+ * must take the next, unseen card. Below, the last draw is shown openly:
+ * which card came to the hand and which one went to the discard pile.
+ *
+ * Port of the iOS `DrawAreaView`.
+ */
 @Composable
-fun DrawPanel(
-    revealed: Card,
-    stockCount: Int,
+fun DrawArea(
+    snapshot: GameSnapshot,
+    opponentName: String,
     onTake: () -> Unit,
     onReject: () -> Unit,
 ) {
+    val revealed = snapshot.revealedCard
+
+    Column(
+        Modifier.width(300.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(26.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            StockPile(snapshot.stockCount)
+
+            if (revealed != null) {
+                CardFace(revealed, 92.dp)
+            } else {
+                // Face down while the opponent is drawing: nothing to see yet.
+                Box(Modifier.alpha(0.55f)) { CardBack(92.dp) }
+            }
+        }
+
+        if (revealed != null) {
+            Text(
+                De.DRAW_PROMPT,
+                color = Color.White.copy(alpha = 0.85f),
+                fontSize = 12.sp,
+                textAlign = TextAlign.Center,
+            )
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                DrawButton(De.DRAW_TAKE, "☝", Color(0xFF2E9E5B), Modifier.weight(1f), onTake)
+                DrawButton(De.DRAW_REJECT, "🗑", Color(0xFFCC7A22), Modifier.weight(1f), onReject)
+            }
+        } else {
+            Text(
+                De.drawingTurn(opponentName),
+                color = Color.White.copy(alpha = 0.85f),
+                fontSize = 12.sp,
+            )
+        }
+
+        // Openly show what the last draw did – the engine only reveals this
+        // for the player's own draw, never for the opponent's.
+        snapshot.lastDrawResult?.let { result ->
+            Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CardFace(result.taken, 44.dp)
+                    Spacer(Modifier.height(3.dp))
+                    Text(
+                        "✓ ${De.DRAW_TAKEN}",
+                        color = Color(0xFF4CD07D),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                    )
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(Modifier.alpha(0.75f)) { CardFace(result.discarded, 44.dp) }
+                    Spacer(Modifier.height(3.dp))
+                    Text(
+                        "🗑 ${De.DRAW_DISCARDED}",
+                        color = Color(0xFFE8A24A),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** The stock pile: a few stacked card backs with the remaining count on top. */
+@Composable
+private fun StockPile(count: Int) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(De.DRAW_PROMPT, color = Color.White, fontSize = 13.sp, textAlign = TextAlign.Center)
-        Spacer(Modifier.height(12.dp))
-        CardFace(revealed, 96.dp)
-        Spacer(Modifier.height(6.dp))
-        Text("${De.STOCK_LABEL}: $stockCount", color = Color.White.copy(alpha = 0.75f), fontSize = 12.sp)
-        Spacer(Modifier.height(12.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Button(
-                onClick = onTake,
-                colors = ButtonDefaults.buttonColors(containerColor = TableStyle.gold, contentColor = Color.Black),
-            ) { Text(De.DRAW_TAKE, fontWeight = FontWeight.Bold) }
-            OutlinedButton(onClick = onReject) { Text(De.DRAW_REJECT, color = Color.White) }
+        Box(contentAlignment = Alignment.Center) {
+            // A little stacked look under the top card.
+            Box(Modifier.offset(x = 4.dp, y = 4.dp).alpha(0.5f)) { CardBack(82.dp) }
+            Box(Modifier.offset(x = 2.dp, y = 2.dp).alpha(0.75f)) { CardBack(82.dp) }
+            CardBack(82.dp)
+            Text(
+                "$count",
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Black,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(Color.Black.copy(alpha = 0.6f))
+                    .padding(horizontal = 9.dp, vertical = 3.dp),
+            )
+        }
+        Spacer(Modifier.height(5.dp))
+        Text(De.STOCK_LABEL, color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
+    }
+}
+
+/**
+ * A draw decision button: the icon sits faintly behind the label so the word
+ * stays on one line and never gets truncated.
+ */
+@Composable
+private fun DrawButton(
+    title: String,
+    icon: String,
+    tint: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier,
+        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 9.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = tint, contentColor = Color.White),
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Text(icon, fontSize = 18.sp, color = Color.White.copy(alpha = 0.33f))
+            Text(title, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1)
         }
     }
 }

@@ -75,19 +75,13 @@ fun GameScreen(vm: SoloGameViewModel) {
                 }
 
                 Box(Modifier.weight(1f).fillMaxSize(), contentAlignment = Alignment.Center) {
-                    val revealed = snapshot.revealedCard
-                    if (snapshot.phase == GamePhase.Drawing && snapshot.isMyTurn && revealed != null) {
-                        DrawPanel(revealed, snapshot.stockCount, vm::takeCard, vm::rejectCard)
-                    } else if (snapshot.phase == GamePhase.Drawing) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(De.drawingTurn(name(snapshot, top)), color = Color.White, fontSize = 14.sp)
-                            Spacer(Modifier.height(6.dp))
-                            Text(
-                                "${De.STOCK_LABEL}: ${snapshot.stockCount}",
-                                color = Color.White.copy(alpha = 0.7f),
-                                fontSize = 12.sp,
-                            )
-                        }
+                    if (snapshot.phase == GamePhase.Drawing) {
+                        DrawArea(
+                            snapshot = snapshot,
+                            opponentName = name(snapshot, top),
+                            onTake = vm::takeCard,
+                            onReject = vm::rejectCard,
+                        )
                     } else {
                         TrickArea(snapshot, Modifier.fillMaxSize())
                     }

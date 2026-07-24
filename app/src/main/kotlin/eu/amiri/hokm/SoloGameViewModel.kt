@@ -168,7 +168,7 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
                 if (g.phase == GamePhase.Discarding) {
                     val seat = g.pendingDiscards.firstOrNull { it != humanSeat } ?: break
                     val action = HokmBot.nextAction(g.snapshot(seat), difficulty) ?: break
-                    delay(600)
+                    delay(BOT_DELAY_MS)
                     g.apply(action, from = seat)
                     publish()
                     continue
@@ -176,8 +176,9 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
                 val seat = g.turn ?: break
                 if (seat == humanSeat) break
                 val action = HokmBot.nextAction(g.snapshot(seat), difficulty) ?: break
-                // In the 2-player draw phase let the thrown/taken card linger.
-                delay(if (g.phase == GamePhase.Drawing) 1500 else 700)
+                // In the two-player draw phase the bot pauses longer so the
+                // player can actually read which card was just thrown away.
+                delay(if (g.phase == GamePhase.Drawing) DRAW_DELAY_MS else BOT_DELAY_MS)
                 g.apply(action, from = seat)
                 publish()
             }
@@ -236,5 +237,11 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
         if (winner != snap.myTeam) return
         handsWonThisGame++
         if ((snap.trickCounts[winner.opponent] ?: 0) == 0) sweepsThisGame++
+    }
+
+    private companion object {
+        /** Bot thinking time, matching the iOS `SoloTransport`. */
+        const val BOT_DELAY_MS = 700L
+        const val DRAW_DELAY_MS = 2500L
     }
 }

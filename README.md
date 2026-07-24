@@ -25,6 +25,10 @@ Basiert auf dem Portierungsleitfaden aus dem iOS-Repo
     Zuordnung zum Sitz, Spielerplaketten mit Hakem-Krone, Zug-Hervorhebung
     und Kartenrücken-Fächer, kompakte Score-Leiste sowie Overlays für
     Trumpfansage, Abwurf (2 Spieler), Rundenende, Spielende und Pause.
+  - **Ziehphase (2 Spieler)** wie auf iOS: gestapelter Nachziehstapel mit
+    Restanzahl, offen aufgedeckte Karte, und nach jedem eigenen Zug die
+    Anzeige, welche Karte in die Hand ging und welche dafür weggeworfen
+    wurde – inklusive der iOS-Ziehzeiten (2,5 s, damit man es lesen kann).
   - **Spielregeln**: das vollständige Regelwerk in sieben Abschnitten
     (Spiel, Hakem, Hokm zu zweit, Stichspiel, Wertung, Hoch/Niedrig, App).
   - **Tutorial**: fünf illustrierte Schritte zum Durchwischen, beim ersten
