@@ -6,12 +6,12 @@ package eu.amiri.hokm.engine
  * ranking, no trump – the two beats the ace).
  */
 sealed interface TrumpChoice {
-    data class OfSuit(val suit: Suit) : TrumpChoice
+    data class OfSuit(override val suit: Suit) : TrumpChoice
     data object High : TrumpChoice
     data object Low : TrumpChoice
 
     /** The trump suit, when one exists (classic variant only). */
-    val suit: Suit? get() = (this as? OfSuit)?.suit
+    val suit: Suit? get() = null
 
     /** True when the two is the strongest card (inverted ranking). */
     val isInverted: Boolean get() = this == Low
