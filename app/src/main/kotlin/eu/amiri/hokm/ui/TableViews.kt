@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -17,11 +18,13 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -33,6 +36,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import eu.amiri.hokm.engine.Card
 import eu.amiri.hokm.engine.GameSnapshot
 import eu.amiri.hokm.engine.Seat
@@ -51,14 +55,25 @@ fun HandFan(
     isMyTurn: Boolean,
     onPlay: (Card) -> Unit,
     modifier: Modifier = Modifier,
+    uiScale: Float = 1f,
 ) {
     BoxWithConstraints(modifier, contentAlignment = Alignment.BottomCenter) {
         val count = cards.size
         if (count == 0) return@BoxWithConstraints
 
+        val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+        val isWide = configuration.screenWidthDp > 640
+
         val overlap = 0.46f
         val available = maxWidth - 16.dp
-        val cardWidth = Dp(min(84f, maxOf(50f, available.value / (1 + overlap * (count - 1).coerceAtLeast(0)))))
+        
+        // Base width: 84dp on phones, 120dp on tablets.
+        val baseMax = if (isWide) 120f else 84f
+        // Apply uiScale but cap at a reasonable large value (150dp).
+        val scaledMax = min(baseMax * uiScale, 150f)
+        
+        val cardWidth = Dp(min(scaledMax, maxOf(50f, available.value / (1 + overlap * (count - 1).coerceAtLeast(0)))))
+        val cardHeight = cardWidth * 1.45f
         val step = cardWidth * overlap
         val spread = step * (count - 1).coerceAtLeast(0).toFloat()
         val maxAngle = min((count - 1).coerceAtLeast(0) * 1.1f, 14f)
@@ -75,10 +90,15 @@ fun HandFan(
 
             Box(
                 Modifier
+                    .zIndex(index.toFloat() + (if (playable) 100f else 0f))
                     .offset(x = spread * t, y = dip - lift.dp)
                     .rotate(t * 2 * maxAngle)
                     .alpha(if (isMyTurn && !playable) 0.55f else 1f)
-                    .clickable(enabled = playable) { onPlay(card) },
+                    .clickable(
+                        enabled = playable,
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) { onPlay(card) },
             ) {
                 CardFace(card, cardWidth)
             }
@@ -153,6 +173,7 @@ fun PlayerBadge(
     snapshot: GameSnapshot,
     modifier: Modifier = Modifier,
     showCards: Boolean = true,
+    uiScale: Float = 1f,
 ) {
     val isTurn = snapshot.turn == seat
     val isHakem = snapshot.hakem == seat
@@ -167,7 +188,7 @@ fun PlayerBadge(
 
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         if (showCards) {
-            CardBackFan(count = cardCount, rotated = isSide)
+            CardBackFan(count = cardCount, rotated = isSide, uiScale = uiScale)
             Spacer(Modifier.height(6.dp))
         }
 
@@ -180,15 +201,15 @@ fun PlayerBadge(
                     color = if (isTurn) Color.White else Color.White.copy(alpha = 0.55f),
                     shape = CircleShape,
                 )
-                .padding(horizontal = 12.dp, vertical = 6.dp),
+                .padding(horizontal = (12 * uiScale).dp, vertical = (6 * uiScale).dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            if (isHakem) Text("♛", color = TableStyle.gold, fontSize = 13.sp)
+            if (isHakem) Text("♛", color = TableStyle.gold, fontSize = (13 * uiScale).sp)
             Text(
                 name,
                 color = if (isTurn) Color.Black else Color.White,
-                fontSize = 14.sp,
+                fontSize = (14 * uiScale).sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
             )
@@ -196,7 +217,7 @@ fun PlayerBadge(
                 Text(
                     De.PARTNER,
                     color = if (isTurn) Color.Black else Color.White,
-                    fontSize = 10.sp,
+                    fontSize = (10 * uiScale).sp,
                     modifier = Modifier
                         .clip(CircleShape)
                         .background(Color.White.copy(alpha = 0.25f))
@@ -209,14 +230,21 @@ fun PlayerBadge(
 
 /** A small arc of card backs standing in for another player's hand. */
 @Composable
-private fun CardBackFan(count: Int, rotated: Boolean) {
+private fun CardBackFan(count: Int, rotated: Boolean, uiScale: Float = 1f) {
     val shown = min(count, 13)
     val step = 6.dp
     val spread = step * (shown - 1).coerceAtLeast(0).toFloat()
+    
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val isWide = configuration.screenWidthDp > 640
+    
+    // 24dp on phones, 36dp on tablets.
+    val baseWidth = if (isWide) 36f else 24f
+    val cardWidth = (baseWidth * uiScale).dp
 
     Box(
         Modifier
-            .then(if (rotated) Modifier.size(44.dp, 70.dp) else Modifier.size(120.dp, 40.dp))
+            .then(if (rotated) Modifier.size(44.dp * uiScale, 70.dp * uiScale) else Modifier.size(120.dp * uiScale, 40.dp * uiScale))
             .alpha(if (count == 0) 0f else 1f)
             .rotate(if (rotated) 90f else 0f),
         contentAlignment = Alignment.Center,
@@ -225,7 +253,7 @@ private fun CardBackFan(count: Int, rotated: Boolean) {
             if (shown > 0) {
                 val t = if (shown > 1) index.toFloat() / (shown - 1) - 0.5f else 0f
                 CardBack(
-                    width = 24.dp,
+                    width = cardWidth,
                     modifier = Modifier
                         .offset(x = spread * t, y = (t * t * 10).dp)
                         .rotate(t * 20f),
@@ -251,8 +279,11 @@ fun ScoreHeader(
     hakemName: String,
     modifier: Modifier = Modifier,
     showTrump: Boolean = true,
+    uiScale: Float = 1f,
 ) {
     val myTeam = snapshot.myTeam
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val isWide = configuration.screenWidthDp > 640
 
     Row(
         modifier,
@@ -261,55 +292,98 @@ fun ScoreHeader(
     ) {
         Spacer(Modifier.weight(1f))
 
-        // The cluster: points next to hakem, points above tricks, trump at
-        // the cluster's bottom right. Both columns keep a uniform pill width.
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (isWide) {
+            // Tablet: All 4 pills in one row
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 ScorePill(
                     De.POINTS,
                     snapshot.scores[myTeam] ?: 0,
                     snapshot.scores[myTeam.opponent] ?: 0,
-                    Modifier.width(SCORE_PILL_WIDTH),
+                    Modifier.widthIn(min = 84.dp * uiScale),
+                    uiScale = uiScale
                 )
-                LabeledPill(De.HAKEM, Modifier.width(INFO_PILL_WIDTH)) {
+                ScorePill(
+                    De.TRICKS,
+                    snapshot.trickCounts[myTeam] ?: 0,
+                    snapshot.trickCounts[myTeam.opponent] ?: 0,
+                    Modifier.widthIn(min = 84.dp * uiScale),
+                    uiScale = uiScale
+                )
+                LabeledPill(De.HAKEM, Modifier.widthIn(min = 84.dp * uiScale)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        Text("♛", color = TableStyle.gold, fontSize = 11.sp)
+                        Text("♛", color = TableStyle.gold, fontSize = (11 * uiScale).sp)
                         Text(
                             hakemName,
                             color = Color.White,
-                            fontSize = 13.sp,
+                            fontSize = (13 * uiScale).sp,
                             fontWeight = FontWeight.SemiBold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
                 }
+                LabeledPill(De.TRUMP_LABEL, Modifier.widthIn(min = 84.dp * uiScale)) {
+                    TrumpValue(snapshot.trumpChoice.takeIf { showTrump }, uiScale = uiScale)
+                }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ScorePill(
-                    De.TRICKS,
-                    snapshot.trickCounts[myTeam] ?: 0,
-                    snapshot.trickCounts[myTeam.opponent] ?: 0,
-                    Modifier.width(SCORE_PILL_WIDTH),
-                )
-                LabeledPill(De.TRUMP_LABEL, Modifier.width(INFO_PILL_WIDTH)) {
-                    TrumpValue(snapshot.trumpChoice.takeIf { showTrump })
+        } else {
+            // Phone: 2x2 Cluster
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ScorePill(
+                        De.POINTS,
+                        snapshot.scores[myTeam] ?: 0,
+                        snapshot.scores[myTeam.opponent] ?: 0,
+                        Modifier.widthIn(min = 84.dp * uiScale),
+                        uiScale = uiScale
+                    )
+                    LabeledPill(De.HAKEM, Modifier.widthIn(min = 84.dp * uiScale)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text("♛", color = TableStyle.gold, fontSize = (11 * uiScale).sp)
+                            Text(
+                                hakemName,
+                                color = Color.White,
+                                fontSize = (13 * uiScale).sp,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ScorePill(
+                        De.TRICKS,
+                        snapshot.trickCounts[myTeam] ?: 0,
+                        snapshot.trickCounts[myTeam.opponent] ?: 0,
+                        Modifier.widthIn(min = 84.dp * uiScale),
+                        uiScale = uiScale
+                    )
+                    LabeledPill(De.TRUMP_LABEL, Modifier.widthIn(min = 84.dp * uiScale)) {
+                        TrumpValue(snapshot.trumpChoice.takeIf { showTrump }, uiScale = uiScale)
+                    }
                 }
             }
         }
 
         Spacer(Modifier.weight(1f))
 
-        RoundBadge(snapshot.handNumber, snapshot.pointsToWin)
+        RoundBadge(snapshot.handNumber, snapshot.pointsToWin, uiScale = uiScale)
     }
 }
 
 /** The declaration: suit symbol + name, or high/low with an arrow. */
 @Composable
-private fun TrumpValue(choice: TrumpChoice?) {
+private fun TrumpValue(choice: TrumpChoice?, uiScale: Float = 1f) {
     when (choice) {
         is TrumpChoice.OfSuit -> Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -318,12 +392,12 @@ private fun TrumpValue(choice: TrumpChoice?) {
             Text(
                 choice.suit.symbol,
                 color = if (choice.suit.isRed) Color(1f, 0.45f, 0.45f) else Color.White,
-                fontSize = 13.sp,
+                fontSize = (13 * uiScale).sp,
             )
             Text(
                 choice.suit.germanName,
                 color = Color.White,
-                fontSize = 13.sp,
+                fontSize = (13 * uiScale).sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
             )
@@ -332,7 +406,7 @@ private fun TrumpValue(choice: TrumpChoice?) {
         TrumpChoice.High -> Text(
             "↑ ${De.HIGH}",
             color = Color(0.4f, 0.85f, 0.5f),
-            fontSize = 13.sp,
+            fontSize = (13 * uiScale).sp,
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
         )
@@ -340,13 +414,13 @@ private fun TrumpValue(choice: TrumpChoice?) {
         TrumpChoice.Low -> Text(
             "↓ ${De.LOW}",
             color = Color(1f, 0.7f, 0.3f),
-            fontSize = 13.sp,
+            fontSize = (13 * uiScale).sp,
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
         )
 
         // Placeholder before the declaration so the cluster doesn't jump.
-        null -> Text("–", color = Color.White.copy(alpha = 0.5f), fontSize = 13.sp)
+        null -> Text("–", color = Color.White.copy(alpha = 0.5f), fontSize = (13 * uiScale).sp)
     }
 }
 
@@ -355,56 +429,54 @@ private fun TrumpValue(choice: TrumpChoice?) {
  * (current round / points needed to win).
  */
 @Composable
-private fun RoundBadge(handNumber: Int, pointsToWin: Int) {
+private fun RoundBadge(handNumber: Int, pointsToWin: Int, uiScale: Float = 1f) {
     Column(
         Modifier
             .clip(RoundedCornerShape(10.dp))
             .background(Color.Black.copy(alpha = 0.35f))
-            .padding(horizontal = 10.dp, vertical = 4.dp),
+            .padding(horizontal = (10 * uiScale).dp, vertical = (4 * uiScale).dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(De.ROUND_WORD, color = Color.White.copy(alpha = 0.7f), fontSize = 9.sp, fontWeight = FontWeight.SemiBold)
-        Text("$handNumber/$pointsToWin", color = TableStyle.gold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        Text(De.ROUND_WORD, color = Color.White.copy(alpha = 0.7f), fontSize = (12 * uiScale).sp, fontWeight = FontWeight.SemiBold)
+        Text("$handNumber/$pointsToWin", color = TableStyle.gold, fontSize = (13 * uiScale).sp, fontWeight = FontWeight.Bold)
     }
 }
 
 /** A pill with a small explanatory label above its value. */
 @Composable
-private fun LabeledPill(label: String, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+private fun LabeledPill(label: String, modifier: Modifier = Modifier, uiScale: Float = 1f, content: @Composable () -> Unit) {
     Column(
         modifier
             .clip(RoundedCornerShape(10.dp))
             .background(Color.Black.copy(alpha = 0.35f))
-            .padding(horizontal = 10.dp, vertical = 4.dp),
+            .padding(horizontal = (10 * uiScale).dp, vertical = (4 * uiScale).dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(1.dp),
     ) {
-        Text(label, color = Color.White.copy(alpha = 0.7f), fontSize = 9.sp, fontWeight = FontWeight.SemiBold)
+        Text(label, color = Color.White.copy(alpha = 0.7f), fontSize = (12 * uiScale).sp, fontWeight = FontWeight.SemiBold)
         content()
     }
 }
 
 /** A score pill: caption on top, "mine : theirs" below (own team gold). */
 @Composable
-private fun ScorePill(title: String, mine: Int, theirs: Int, modifier: Modifier = Modifier) {
+private fun ScorePill(title: String, mine: Int, theirs: Int, modifier: Modifier = Modifier, uiScale: Float = 1f) {
     Column(
         modifier
             .clip(RoundedCornerShape(10.dp))
             .background(Color.Black.copy(alpha = 0.35f))
-            .padding(horizontal = 10.dp, vertical = 4.dp),
+            .padding(horizontal = (10 * uiScale).dp, vertical = (4 * uiScale).dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(title, color = Color.White.copy(alpha = 0.7f), fontSize = 9.sp, fontWeight = FontWeight.SemiBold)
+        Text(title, color = Color.White.copy(alpha = 0.7f), fontSize = (12 * uiScale).sp, fontWeight = FontWeight.SemiBold)
         Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text("$mine", color = TableStyle.gold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-            Text(":", color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp, fontWeight = FontWeight.Bold)
-            Text("$theirs", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            Text("$mine", color = TableStyle.gold, fontSize = (13 * uiScale).sp, fontWeight = FontWeight.Bold)
+            Text(":", color = Color.White.copy(alpha = 0.6f), fontSize = (13 * uiScale).sp, fontWeight = FontWeight.Bold)
+            Text("$theirs", color = Color.White, fontSize = (13 * uiScale).sp, fontWeight = FontWeight.Bold)
         }
     }
 }
 
-private val SCORE_PILL_WIDTH = 72.dp
-private val INFO_PILL_WIDTH = 132.dp
 
 /** Card size used inside overlays, where space is tight. */
 val OverlayCardWidth: Dp = 52.dp

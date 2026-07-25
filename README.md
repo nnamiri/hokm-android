@@ -7,41 +7,28 @@ Basiert auf dem Portierungsleitfaden aus dem iOS-Repo
 (`docs/android-port.md`): die UI-freie Spiel-Engine wird nach Kotlin portiert
 (mit Tests als Spezifikation), die Oberfläche in Compose neu gebaut.
 
-## Stand: v0.2 – Echter Spieltisch
+## Stand: v0.3 – Echtes Menü
 
-- **`:engine`** – reines Kotlin/JVM-Modul mit der kompletten Spiellogik
-  (Karten, Sitze, Trick, Regeln, `HokmGame`-Zustandsmaschine, `HokmBot`,
-  `GameSnapshot`, deterministischer `SeededGenerator`, Ass-Zieh). Faithful
-  port der iOS-`HokmKit`; Tests laufen ohne Android-SDK auf jeder JVM.
-  Der komplette Spielzustand ist über `GameState` serialisierbar (Pendant zu
-  Swifts `Codable`) – die Basis für den Spielstandspeicher.
-- **`:app`** – Android-App (Compose) mit vollständigem **Solo-Modus**
-  (Mensch auf Süd gegen Bots), 2 und 4 Spieler, drei Bot-Stärken:
-  - **Echtes Kartendesign**, komplett in Compose gezeichnet: klassisches
-    Pip-Layout für 2–10, Bildkarten in Serif, großes Ass-Symbol, Eckzeichen
-    oben/unten, Kartenrücken mit Verlauf – 1:1-Port der iOS-`CardView`.
-  - **Tischlayout** wie auf iOS: Filz-Verlauf, gefächerte Handkarten (die
-    spielbare Karte hebt sich an, illegale werden gedimmt), Stichbereich mit
-    Zuordnung zum Sitz, Spielerplaketten mit Hakem-Krone, Zug-Hervorhebung
-    und Kartenrücken-Fächer, kompakte Score-Leiste sowie Overlays für
-    Trumpfansage, Abwurf (2 Spieler), Rundenende, Spielende und Pause.
-  - **Ziehphase (2 Spieler)** wie auf iOS: gestapelter Nachziehstapel mit
-    Restanzahl, offen aufgedeckte Karte, und nach jedem eigenen Zug die
-    Anzeige, welche Karte in die Hand ging und welche dafür weggeworfen
-    wurde – inklusive der iOS-Ziehzeiten (2,5 s, damit man es lesen kann).
-  - **Spielregeln**: das vollständige Regelwerk in sieben Abschnitten
-    (Spiel, Hakem, Hokm zu zweit, Stichspiel, Wertung, Hoch/Niedrig, App).
-  - **Tutorial**: fünf illustrierte Schritte zum Durchwischen, beim ersten
-    Start automatisch, danach jederzeit über das Menü.
-  - **Statistik**: Spiele, Siege, Niederlagen, Siegquote, aktuelle und beste
-    Serie, gewonnene Runden, Kut-Runden – in `SharedPreferences` persistiert.
-  - **Spielstandspeicher**: Das laufende Solo-Spiel wird automatisch
-    gesichert und lässt sich auch nach einem App-Neustart fortsetzen.
-
-  Die Oberfläche ist vollständig **Edge-to-Edge** optimiert und respektiert
-  System-Insets (Safe Area) für Statusleiste, Notch und Gesten-Navigation.
-  Derzeit ist die App **auf Deutsch**; Wortmarke, Lokalisierung
-  (en/fa + RTL), Sounds/Haptik und Startscreen folgen.
+- **Navigations-Zentrale**: Die App nutzt nun ein modernes Grundgerüst
+  (`Scaffold`) mit einer schwebenden, transluzenten **Bottom Navigation Bar**
+  („Glassmorphism“). Direkter Zugriff auf Startseite, Spielregeln, Statistik
+  und Einstellungen.
+- **Home-Screen Redesign**: Vollständige visuelle Anpassung an das iOS-Vorbild:
+  - **Authentisches Branding**: Großes goldenes Kalligraphie-Logo („حُکم“) und
+    markante Typografie.
+  - **Action Cards**: Hochwertige, abgerundete Karten für Hauptaktionen. „Spiel
+    fortsetzen“ in Signalgrün, „Neues Solo-Spiel“ in dezenter Glas-Optik.
+  - **Gesten-Steuerung**: Die „Neues Spiel“-Karte lässt sich nun sanft mit dem
+    Finger nach links wischen (HorizontalPager), um die Spieleranzahl (2/4)
+    direkt in der Karte zu wählen – für ein taktileres Erlebnis.
+- **Globale Einstellungen**: Ein neuer Einstellungs-Tab erlaubt die Wahl der
+  Bot-Stärke, die nun global über alle Spielmodi hinweg in den
+  `SharedPreferences` persistiert wird.
+- **UI-Feinschliff**:
+  - Vollständige **Edge-to-Edge** Unterstützung mit korrekten Insets für
+    Statusleiste, Notch und Gesten-Navigation auf allen Screens.
+  - Symmetrische Abstände und korrigierte Zentrierungen im Tutorial und in
+    den Einstellungs-Kacheln.
 
 ## Bauen
 
@@ -54,7 +41,7 @@ das Android SDK (Platform 34).
 ```
 
 Das Projekt nutzt den **Gradle Wrapper** und moderne Build-Standards:
-- **Gradle 9.5**
+- **Gradle 9.6.1**
 - **Android Gradle Plugin 9.3.1**
 - **Kotlin 2.2.10** (mit modernem `compilerOptions` DSL)
 - **Java 21** (Daemon & Toolchain)
@@ -66,6 +53,7 @@ Das Projekt nutzt den **Gradle Wrapper** und moderne Build-Standards:
 2. Compose-UI + vollständiger Solo-Modus
    - ✅ Kartendesign & Tischlayout, Statistik, Spielstandspeicher
    - ✅ Spielregeln & Tutorial
+   - ✅ Modernes Menü & Navigations-Zentrale (v0.3)
    - 🔜 Wortmarke/App-Icon & Startscreen, Lokalisierung (en/fa + RTL),
      Sounds & Haptik
 3. Play Billing (Design-Paket), Play Games (Erfolge/Bestenliste)

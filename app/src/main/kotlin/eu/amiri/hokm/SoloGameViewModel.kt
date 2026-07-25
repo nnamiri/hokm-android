@@ -35,6 +35,8 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
     private var game: HokmGame? = null
     var botDifficulty by mutableStateOf(settings.botDifficulty)
         private set
+    var uiScale by mutableStateOf(settings.uiScale)
+        private set
     private var botJob: Job? = null
 
     // Per-game counters for the statistics, mirroring iOS `GameSession`.
@@ -89,6 +91,11 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
     fun updateBotDifficulty(value: BotDifficulty) {
         settings.botDifficulty = value
         botDifficulty = value
+    }
+
+    fun updateUiScale(value: Float) {
+        settings.uiScale = value
+        uiScale = value
     }
 
     fun newGame(players: Int) {

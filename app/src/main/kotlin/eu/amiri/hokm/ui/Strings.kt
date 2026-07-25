@@ -19,6 +19,7 @@ object De {
     const val NEW_SOLO_GAME = "Neues Solo-Spiel"
     const val SOLO_SUB = "Sofort losspielen"
     const val BOT_STRENGTH = "Bot-Stärke"
+    const val FONT_SIZE = "Schriftgröße"
     const val PLAYERS_LABEL = "Spieler (Solo)"
     const val START = "Spiel starten"
     const val DISCARD_SAVED_GAME = "Gespeichertes Spiel verwerfen"

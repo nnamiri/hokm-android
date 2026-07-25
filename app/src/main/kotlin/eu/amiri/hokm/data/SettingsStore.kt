@@ -22,6 +22,10 @@ class SettingsStore(private val prefs: SharedPreferences) {
         get() = BotDifficulty.valueOf(prefs.getString(KEY_BOT_DIFFICULTY, BotDifficulty.NORMAL.name) ?: BotDifficulty.NORMAL.name)
         set(value) = prefs.edit().putString(KEY_BOT_DIFFICULTY, value.name).apply()
 
+    var uiScale: Float
+        get() = prefs.getFloat(KEY_UI_SCALE, 1.0f)
+        set(value) = prefs.edit().putFloat(KEY_UI_SCALE, value).apply()
+
     /** Whether the in-game spotlight tutorial has run for a mode (2P/4P). */
     fun hasSeenTableCoach(playerCount: Int): Boolean =
         prefs.getBoolean(coachKey(playerCount), false)
@@ -36,6 +40,7 @@ class SettingsStore(private val prefs: SharedPreferences) {
     private companion object {
         const val KEY_SEEN_TUTORIAL = "hokm.settings.hasSeenTutorial"
         const val KEY_BOT_DIFFICULTY = "hokm.settings.botDifficulty"
+        const val KEY_UI_SCALE = "hokm.settings.uiScale"
         const val KEY_COACH_2P = "hokm.settings.seenTableCoach2P"
         const val KEY_COACH_4P = "hokm.settings.seenTableCoach4P"
     }

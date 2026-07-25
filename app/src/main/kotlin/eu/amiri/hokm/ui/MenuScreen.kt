@@ -66,14 +66,14 @@ private fun HokmNavigationShell(
         Scaffold(
             containerColor = Color.Transparent,
             bottomBar = {
-                HokmNavigationBar(activeArea, onAreaChange)
+                HokmNavigationBar(activeArea, onAreaChange, vm)
             },
             contentWindowInsets = WindowInsets(0, 0, 0, 0)
         ) { padding ->
             Box(Modifier.fillMaxSize().padding(bottom = padding.calculateBottomPadding())) {
                 when (activeArea) {
                     MenuArea.HOME -> MenuScreen(vm)
-                    MenuArea.STATISTICS -> StatisticsScreen(vm.stats, onReset = vm::resetStats)
+                    MenuArea.STATISTICS -> StatisticsScreen(vm)
                     MenuArea.RULES -> RulesScreen()
                     MenuArea.SETTINGS -> SettingsScreen(vm)
                 }
@@ -83,13 +83,14 @@ private fun HokmNavigationShell(
 }
 
 @Composable
-private fun HokmNavigationBar(activeArea: MenuArea, onAreaChange: (MenuArea) -> Unit) {
+private fun HokmNavigationBar(activeArea: MenuArea, onAreaChange: (MenuArea) -> Unit, vm: SoloGameViewModel) {
+    val uiScale = vm.uiScale
     Row(
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
             .padding(bottom = 24.dp)
-            .height(84.dp)
+            .height((84 * uiScale).dp)
             .clip(RoundedCornerShape(32.dp))
             .background(Color.Black.copy(alpha = 0.55f))
             .border(1.dp, Color.White.copy(alpha = 0.12f), RoundedCornerShape(32.dp)),
@@ -102,6 +103,7 @@ private fun HokmNavigationBar(activeArea: MenuArea, onAreaChange: (MenuArea) -> 
                 label = area.label,
                 icon = area.icon,
                 selected = selected,
+                uiScale = uiScale,
             ) { onAreaChange(area) }
         }
     }
@@ -112,6 +114,7 @@ private fun RowScope.HokmNavigationItem(
     label: String,
     icon: ImageVector,
     selected: Boolean,
+    uiScale: Float = 1f,
     onClick: () -> Unit
 ) {
     Column(
@@ -129,14 +132,14 @@ private fun RowScope.HokmNavigationItem(
         Icon(
             icon,
             contentDescription = label,
-            modifier = Modifier.size(26.dp),
+            modifier = Modifier.size((26 * uiScale).dp),
             tint = if (selected) Color(0xFFC5EA70) else Color.White.copy(alpha = 0.6f)
         )
         Spacer(Modifier.height(4.dp))
         Text(
             label,
             color = if (selected) Color.White else Color.White.copy(alpha = 0.6f),
-            fontSize = 11.sp,
+            fontSize = (11 * uiScale).sp,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
         )
     }
@@ -144,6 +147,7 @@ private fun RowScope.HokmNavigationItem(
 
 @Composable
 private fun SettingsScreen(vm: SoloGameViewModel) {
+    val uiScale = vm.uiScale
     Column(
         Modifier
             .fillMaxSize()
@@ -152,30 +156,54 @@ private fun SettingsScreen(vm: SoloGameViewModel) {
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Einstellungen", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(24.dp))
+        Column(
+            Modifier.widthIn(max = 600.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Einstellungen", color = Color.White, fontSize = (28 * uiScale).sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(24.dp))
 
-        SectionCard(De.BOT_STRENGTH) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                BotDifficulty.entries.forEach { level ->
-                    SelectableChip(
-                        level.germanName,
-                        selected = vm.botDifficulty == level,
-                        modifier = Modifier.weight(1f),
-                        onClick = { vm.updateBotDifficulty(level) }
-                    )
+            SectionCard(De.BOT_STRENGTH) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    BotDifficulty.entries.forEach { level ->
+                        SelectableChip(
+                            level.germanName,
+                            selected = vm.botDifficulty == level,
+                            modifier = Modifier.weight(1f),
+                            onClick = { vm.updateBotDifficulty(level) }
+                        )
+                    }
                 }
             }
-        }
 
-        Spacer(Modifier.height(24.dp))
-        
-        Text(
-            "Version 1.0.0",
-            color = Color.White.copy(alpha = 0.4f),
-            fontSize = 12.sp,
-            modifier = Modifier.padding(top = 8.dp)
-        )
+            Spacer(Modifier.height(24.dp))
+
+            SectionCard(De.FONT_SIZE) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(
+                        "Normal" to 1.0f,
+                        "Mittel" to 1.25f,
+                        "Groß" to 1.5f
+                    ).forEach { (label, scale) ->
+                        SelectableChip(
+                            label,
+                            selected = vm.uiScale == scale,
+                            modifier = Modifier.weight(1f),
+                            onClick = { vm.updateUiScale(scale) }
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(24.dp))
+            
+            Text(
+                "Version 1.0.0",
+                color = Color.White.copy(alpha = 0.4f),
+                fontSize = (12 * uiScale).sp,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
     }
 }
 
@@ -183,6 +211,7 @@ private fun SettingsScreen(vm: SoloGameViewModel) {
 @Composable
 private fun MenuScreen(vm: SoloGameViewModel) {
     var showTutorial by remember { mutableStateOf(value = false) }
+    val uiScale = vm.uiScale
 
     if (showTutorial) {
         TutorialScreen(onFinish = { showTutorial = false })
@@ -197,111 +226,118 @@ private fun MenuScreen(vm: SoloGameViewModel) {
             .padding(horizontal = 24.dp, vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // iOS-style Logo Section
-        Text(
-            "حُکم",
-            color = TableStyle.gold,
-            fontSize = 110.sp,
-            fontWeight = FontWeight.Normal,
-            fontFamily = FontFamily.Serif,
-        )
-        Text(
-            "Hokm",
-            color = Color.White,
-            fontSize = 80.sp,
-            fontWeight = FontWeight.ExtraBold,
-            fontFamily = FontFamily.SansSerif
-        )
-        Text(
-            De.TAGLINE,
-            color = Color.White.copy(alpha = 0.7f),
-            fontSize = 14.sp,
-            textAlign = TextAlign.Center,
-            lineHeight = 20.sp,
-            modifier = Modifier.padding(top = 16.dp, bottom = 40.dp),
-        )
-
-        if (vm.canResume) {
-            ActionCard(
-                title = De.RESUME_GAME,
-                subtitle = De.RESUME_GAME_SUB,
-                containerColor = Color(0xFF2E9E5B),
-                icon = Icons.Default.PlayArrow,
-                showChevron = false,
-                onClick = vm::resumeSavedGame
-            )
-            Spacer(Modifier.height(16.dp))
+        Column(
+            Modifier.widthIn(max = 600.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // iOS-style Logo Section
             Text(
-                De.DISCARD_SAVED_GAME,
-                color = Color.White.copy(alpha = 0.6f),
-                fontSize = 11.sp,
-                modifier = Modifier.clickable { vm.discardSavedGame() }.padding(4.dp),
+                "حُکم",
+                color = TableStyle.gold,
+                fontSize = (110 * uiScale).sp,
+                fontWeight = FontWeight.Normal,
+                fontFamily = FontFamily.Serif,
             )
-            Spacer(Modifier.height(16.dp))
-        }
+            Text(
+                "Hokm",
+                color = Color.White,
+                fontSize = (80 * uiScale).sp,
+                fontWeight = FontWeight.ExtraBold,
+                fontFamily = FontFamily.SansSerif
+            )
+            Text(
+                De.TAGLINE,
+                color = Color.White.copy(alpha = 0.7f),
+                fontSize = (14 * uiScale).sp,
+                textAlign = TextAlign.Center,
+                lineHeight = (20 * uiScale).sp,
+                modifier = Modifier.padding(top = 16.dp, bottom = 40.dp),
+            )
 
-        val pagerState = rememberPagerState(pageCount = { 2 })
-
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxWidth().height(88.dp),
-            beyondViewportPageCount = 1,
-            pageSpacing = 16.dp,
-            contentPadding = PaddingValues(horizontal = 0.dp)
-        ) { page ->
-            if (page == 0) {
+            if (vm.canResume) {
                 ActionCard(
-                    title = De.NEW_SOLO_GAME,
-                    subtitle = De.SOLO_SUB,
-                    containerColor = Color.Black.copy(alpha = 0.3f),
-                    icon = Icons.Default.Person,
-                    onClick = { /* Drag to selection */ }
+                    title = De.RESUME_GAME,
+                    subtitle = De.RESUME_GAME_SUB,
+                    containerColor = Color(0xFF2E9E5B),
+                    icon = Icons.Default.PlayArrow,
+                    showChevron = false,
+                    uiScale = uiScale,
+                    onClick = vm::resumeSavedGame
                 )
-            } else {
-                Surface(
-                    color = Color.Black.copy(alpha = 0.35f),
-                    shape = RoundedCornerShape(24.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(88.dp)
-                        .border(width = 1.dp, color = Color.White.copy(alpha = 0.1f), shape = RoundedCornerShape(24.dp))
-                ) {
-                    Row(
-                        Modifier.padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    De.DISCARD_SAVED_GAME,
+                    color = Color.White.copy(alpha = 0.6f),
+                    fontSize = (11 * uiScale).sp,
+                    modifier = Modifier.clickable { vm.discardSavedGame() }.padding(4.dp),
+                )
+                Spacer(Modifier.height(16.dp))
+            }
+
+            val pagerState = rememberPagerState(pageCount = { 2 })
+
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxWidth().height((88 * uiScale).dp),
+                beyondViewportPageCount = 1,
+                pageSpacing = 16.dp,
+                contentPadding = PaddingValues(horizontal = 0.dp)
+            ) { page ->
+                if (page == 0) {
+                    ActionCard(
+                        title = De.NEW_SOLO_GAME,
+                        subtitle = De.SOLO_SUB,
+                        containerColor = Color.Black.copy(alpha = 0.3f),
+                        icon = Icons.Default.Person,
+                        uiScale = uiScale,
+                        onClick = { /* Drag to selection */ }
+                    )
+                } else {
+                    Surface(
+                        color = Color.Black.copy(alpha = 0.35f),
+                        shape = RoundedCornerShape(24.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height((88 * uiScale).dp)
+                            .border(width = 1.dp, color = Color.White.copy(alpha = 0.1f), shape = RoundedCornerShape(24.dp))
                     ) {
-                        listOf(2, 4).forEach { count ->
-                            Button(
-                                onClick = { vm.newGame(count) },
-                                modifier = Modifier.weight(1f).height(56.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.12f)),
-                                shape = RoundedCornerShape(16.dp)
-                            ) {
-                                Text(De.playersCount(count), color = Color.White, fontWeight = FontWeight.Bold)
+                        Row(
+                            Modifier.padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            listOf(2, 4).forEach { count ->
+                                Button(
+                                    onClick = { vm.newGame(count) },
+                                    modifier = Modifier.weight(1f).height((56 * uiScale).dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.12f)),
+                                    shape = RoundedCornerShape(16.dp)
+                                ) {
+                                    Text(De.playersCount(count), color = Color.White, fontWeight = FontWeight.Bold, fontSize = (14 * uiScale).sp)
+                                }
                             }
                         }
                     }
                 }
             }
-        }
 
-        Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(24.dp))
 
-        // Tutorial Chip
-        Surface(
-            onClick = { showTutorial = true },
-            color = Color.White.copy(alpha = 0.15f),
-            shape = CircleShape,
-            modifier = Modifier.height(36.dp)
-        ) {
-            Row(
-                Modifier.padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            // Tutorial Chip
+            Surface(
+                onClick = { showTutorial = true },
+                color = Color.White.copy(alpha = 0.15f),
+                shape = CircleShape,
+                modifier = Modifier.height((36 * uiScale).dp)
             ) {
-                Icon(Icons.Default.Info, null, tint = Color.White.copy(alpha = 0.8f), modifier = Modifier.size(18.dp))
-                Text("Tutorial", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                Row(
+                    Modifier.padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(Icons.Default.Info, null, tint = Color.White.copy(alpha = 0.8f), modifier = Modifier.size((18 * uiScale).dp))
+                    Text("Tutorial", color = Color.White, fontSize = (14 * uiScale).sp, fontWeight = FontWeight.Medium)
+                }
             }
         }
         
@@ -316,6 +352,7 @@ private fun ActionCard(
     containerColor: Color,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     showChevron: Boolean = true,
+    uiScale: Float = 1f,
     onClick: () -> Unit
 ) {
     Surface(
@@ -324,7 +361,7 @@ private fun ActionCard(
         shape = RoundedCornerShape(24.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .height(88.dp)
+            .height((88 * uiScale).dp)
             .border(width = 1.dp, color = Color.White.copy(alpha = 0.1f), shape = RoundedCornerShape(24.dp))
     ) {
         Row(
@@ -332,22 +369,22 @@ private fun ActionCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                Modifier.size(40.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.15f)),
+                Modifier.size((40 * uiScale).dp).clip(CircleShape).background(Color.White.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icon, null, tint = Color.White, modifier = Modifier.size(26.dp))
+                Icon(icon, null, tint = Color.White, modifier = Modifier.size((26 * uiScale).dp))
             }
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
-                Text(title, color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
-                Text(subtitle, color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp, maxLines = 1)
+                Text(title, color = Color.White, fontSize = (19 * uiScale).sp, fontWeight = FontWeight.Bold)
+                Text(subtitle, color = Color.White.copy(alpha = 0.7f), fontSize = (13 * uiScale).sp, maxLines = 1)
             }
             if (showChevron) {
                 Icon(
                     Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     null,
                     tint = Color.White.copy(alpha = 0.3f),
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size((32 * uiScale).dp)
                 )
             }
         }
@@ -356,7 +393,9 @@ private fun ActionCard(
 
 /** Statistics as its own area. */
 @Composable
-fun StatisticsScreen(stats: GameStats, onReset: () -> Unit) {
+fun StatisticsScreen(vm: SoloGameViewModel) {
+    val stats = vm.stats
+    val uiScale = vm.uiScale
     Column(
         Modifier
             .fillMaxSize()
@@ -365,82 +404,87 @@ fun StatisticsScreen(stats: GameStats, onReset: () -> Unit) {
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(De.STATISTICS, color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(24.dp))
-
-        StatisticsGrid(stats)
-
-        if (stats.gamesPlayed > 0) {
+        Column(
+            Modifier.widthIn(max = 600.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(De.STATISTICS, color = Color.White, fontSize = (28 * uiScale).sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(24.dp))
-            ElevatedCard(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.elevatedCardColors(containerColor = Color.White.copy(alpha = 0.08f))
-            ) {
-                Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("Detail-Statistik", color = TableStyle.gold, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.height(4.dp))
-                    StatRow(De.GAMES, stats.gamesPlayed.toString())
-                    StatRow(De.WON, stats.gamesWon.toString())
-                    StatRow(De.LOST, stats.gamesLost.toString())
-                    StatRow(De.WIN_RATE, "${stats.winPercent} %")
-                    StatRow(De.STREAK, stats.currentStreak.toString())
-                    StatRow(De.BEST_STREAK, stats.bestStreak.toString())
-                    StatRow(De.ROUNDS_WON, stats.handsWon.toString())
-                    StatRow(De.KOT_ROUNDS, stats.sweeps.toString())
+
+            StatisticsGrid(stats, uiScale = uiScale)
+
+            if (stats.gamesPlayed > 0) {
+                Spacer(Modifier.height(24.dp))
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.elevatedCardColors(containerColor = Color.White.copy(alpha = 0.08f))
+                ) {
+                    Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text("Detail-Statistik", color = TableStyle.gold, fontSize = (14 * uiScale).sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(4.dp))
+                        StatRow(De.GAMES, stats.gamesPlayed.toString(), uiScale = uiScale)
+                        StatRow(De.WON, stats.gamesWon.toString(), uiScale = uiScale)
+                        StatRow(De.LOST, stats.gamesLost.toString(), uiScale = uiScale)
+                        StatRow(De.WIN_RATE, "${stats.winPercent} %", uiScale = uiScale)
+                        StatRow(De.STREAK, stats.currentStreak.toString(), uiScale = uiScale)
+                        StatRow(De.BEST_STREAK, stats.bestStreak.toString(), uiScale = uiScale)
+                        StatRow(De.ROUNDS_WON, stats.handsWon.toString(), uiScale = uiScale)
+                        StatRow(De.KOT_ROUNDS, stats.sweeps.toString(), uiScale = uiScale)
+                    }
                 }
+                Spacer(Modifier.height(24.dp))
+                Text(
+                    De.RESET_STATS,
+                    color = Color.White.copy(alpha = 0.5f),
+                    fontSize = (12 * uiScale).sp,
+                    modifier = Modifier.clickable(onClick = vm::resetStats).padding(8.dp),
+                )
             }
-            Spacer(Modifier.height(24.dp))
-            Text(
-                De.RESET_STATS,
-                color = Color.White.copy(alpha = 0.5f),
-                fontSize = 12.sp,
-                modifier = Modifier.clickable(onClick = onReset).padding(8.dp),
-            )
         }
     }
 }
 
 /** Compact statistics grid, reused by the pause menu. */
 @Composable
-fun StatisticsGrid(stats: GameStats) {
+fun StatisticsGrid(stats: GameStats, uiScale: Float = 1f) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (stats.gamesPlayed == 0) {
-            Text(De.NO_GAMES_YET, color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)
+            Text(De.NO_GAMES_YET, color = Color.White.copy(alpha = 0.7f), fontSize = (14 * uiScale).sp)
             return@Column
         }
         // Two rows of three – LazyVGrid would be overkill for six fixed tiles.
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            StatTile(De.GAMES, "${stats.gamesPlayed}", Modifier.weight(1f))
-            StatTile(De.WON, "${stats.gamesWon}", Modifier.weight(1f))
-            StatTile(De.WIN_RATE, "${stats.winPercent} %", Modifier.weight(1f))
+            StatTile(De.GAMES, "${stats.gamesPlayed}", Modifier.weight(1f), uiScale = uiScale)
+            StatTile(De.WON, "${stats.gamesWon}", Modifier.weight(1f), uiScale = uiScale)
+            StatTile(De.WIN_RATE, "${stats.winPercent} %", Modifier.weight(1f), uiScale = uiScale)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            StatTile(De.STREAK, "${stats.currentStreak}", Modifier.weight(1f))
-            StatTile(De.BEST_STREAK, "${stats.bestStreak}", Modifier.weight(1f))
-            StatTile(De.KOT_ROUNDS, "${stats.sweeps}", Modifier.weight(1f))
+            StatTile(De.STREAK, "${stats.currentStreak}", Modifier.weight(1f), uiScale = uiScale)
+            StatTile(De.BEST_STREAK, "${stats.bestStreak}", Modifier.weight(1f), uiScale = uiScale)
+            StatTile(De.KOT_ROUNDS, "${stats.sweeps}", Modifier.weight(1f), uiScale = uiScale)
         }
     }
 }
 
 @Composable
-private fun StatTile(title: String, value: String, modifier: Modifier = Modifier) {
+private fun StatTile(title: String, value: String, modifier: Modifier = Modifier, uiScale: Float = 1f) {
     Column(
         modifier
             .clip(RoundedCornerShape(10.dp))
             .background(Color.White.copy(alpha = 0.1f))
-            .padding(vertical = 8.dp),
+            .padding(vertical = (8 * uiScale).dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(value, color = TableStyle.teamMine, fontSize = 19.sp, fontWeight = FontWeight.Bold)
-        Text(title, color = Color.White.copy(alpha = 0.7f), fontSize = 10.sp)
+        Text(value, color = TableStyle.teamMine, fontSize = (19 * uiScale).sp, fontWeight = FontWeight.Bold)
+        Text(title, color = Color.White.copy(alpha = 0.7f), fontSize = (10 * uiScale).sp)
     }
 }
 
 @Composable
-private fun StatRow(title: String, value: String) {
+private fun StatRow(title: String, value: String, uiScale: Float = 1f) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(title, color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)
-        Text(value, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+        Text(title, color = Color.White.copy(alpha = 0.7f), fontSize = (14 * uiScale).sp)
+        Text(value, color = Color.White, fontSize = (14 * uiScale).sp, fontWeight = FontWeight.SemiBold)
     }
 }
 

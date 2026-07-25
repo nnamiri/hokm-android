@@ -73,76 +73,76 @@ fun OverlayPanel(modifier: Modifier = Modifier, content: @Composable () -> Unit)
  * suits as trump, or call high/low. Port of the iOS `TrumpPickerView`.
  */
 @Composable
-fun TrumpPicker(firstCards: List<Card>, onPick: (TrumpChoice) -> Unit) {
+fun TrumpPicker(firstCards: List<Card>, onPick: (TrumpChoice) -> Unit, uiScale: Float = 1f) {
     OverlayPanel {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("♛", color = TableStyle.gold, fontSize = 26.sp)
-            Text(De.YOU_ARE_HAKEM, color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
+            Text("♛", color = TableStyle.gold, fontSize = (26 * uiScale).sp)
+            Text(De.YOU_ARE_HAKEM, color = Color.White, fontSize = (19 * uiScale).sp, fontWeight = FontWeight.Bold)
             Text(
                 if (firstCards.size == 4) De.PICK_TRUMP_TEXT_2P else De.PICK_TRUMP_TEXT,
                 color = Color.White.copy(alpha = 0.7f),
-                fontSize = 12.sp,
+                fontSize = (13 * uiScale).sp, // Increased base from 12 to 13
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 4.dp),
             )
 
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(18.dp * uiScale))
 
             // The dealt cards, slightly overlapping like a held hand.
             Row {
                 firstCards.forEachIndexed { index, card ->
                     CardFace(
                         card,
-                        OverlayCardWidth,
-                        Modifier.offset(x = (-14).dp * index.toFloat()),
+                        OverlayCardWidth * uiScale,
+                        Modifier.offset(x = (-14).dp * index.toFloat() * uiScale),
                     )
                 }
             }
 
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(18.dp * uiScale))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp * uiScale)) {
                 Suit.entries.forEach { suit ->
                     Column(
                         Modifier
-                            .size(62.dp)
+                            .size(62.dp * uiScale)
                             .clip(RoundedCornerShape(12.dp))
                             .background(Color.White.copy(alpha = 0.1f))
                             .clickable { onPick(TrumpChoice.OfSuit(suit)) },
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
                     ) {
-                        Text(suit.symbol, color = suit.onDarkColor, fontSize = 30.sp)
-                        Text(suit.germanName, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
+                        Text(suit.symbol, color = suit.onDarkColor, fontSize = (30 * uiScale).sp)
+                        Text(suit.germanName, color = Color.White, fontSize = (10 * uiScale).sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(10.dp * uiScale))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                ModeButton("↑", De.HIGH, Color(0.4f, 0.85f, 0.5f)) { onPick(TrumpChoice.High) }
-                ModeButton("↓", De.LOW, Color(1f, 0.7f, 0.3f)) { onPick(TrumpChoice.Low) }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp * uiScale)) {
+                ModeButton("↑", De.HIGH, Color(0.4f, 0.85f, 0.5f), uiScale = uiScale) { onPick(TrumpChoice.High) }
+                ModeButton("↓", De.LOW, Color(1f, 0.7f, 0.3f), uiScale = uiScale) { onPick(TrumpChoice.Low) }
             }
         }
     }
 }
 
 @Composable
-private fun ModeButton(icon: String, label: String, color: Color, onClick: () -> Unit) {
+private fun ModeButton(icon: String, label: String, color: Color, uiScale: Float = 1f, onClick: () -> Unit) {
     Row(
         Modifier
-            .width(134.dp)
-            .height(46.dp)
+            .width(134.dp * uiScale)
+            .height(46.dp * uiScale)
             .clip(RoundedCornerShape(12.dp))
             .background(Color.White.copy(alpha = 0.1f))
             .clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
     ) {
-        Text(icon, color = color, fontSize = 22.sp)
-        Spacer(Modifier.width(6.dp))
-        Text(label, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+        Text(icon, color = color, fontSize = (22 * uiScale).sp)
+        Spacer(Modifier.width(6.dp * uiScale))
+        Text(label, color = Color.White, fontSize = (15 * uiScale).sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -152,24 +152,25 @@ fun DiscardPicker(
     hand: List<Card>,
     hakemDeclaration: String?,
     onDiscard: (List<Card>) -> Unit,
+    uiScale: Float = 1f,
 ) {
     var selected by remember { mutableStateOf(emptyList<Card>()) }
 
     OverlayPanel {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(De.DISCARD_PROMPT, color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+            Text(De.DISCARD_PROMPT, color = Color.White, fontSize = (17 * uiScale).sp, fontWeight = FontWeight.Bold)
             hakemDeclaration?.let {
-                Text(it, color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+                Text(it, color = Color.White.copy(alpha = 0.7f), fontSize = (13 * uiScale).sp, modifier = Modifier.padding(top = 4.dp))
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(16.dp * uiScale))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp * uiScale)) {
                 hand.forEach { card ->
                     val isSelected = card in selected
                     Box(
                         Modifier
-                            .offset(y = if (isSelected) (-10).dp else 0.dp)
+                            .offset(y = if (isSelected) (-10).dp * uiScale else 0.dp)
                             .clip(RoundedCornerShape(10.dp))
                             .then(
                                 if (isSelected) {
@@ -186,19 +187,19 @@ fun DiscardPicker(
                                 }
                             },
                     ) {
-                        CardFace(card, 60.dp)
+                        CardFace(card, 60.dp * uiScale)
                     }
                 }
             }
 
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(18.dp * uiScale))
 
             Button(
                 onClick = { onDiscard(selected); selected = emptyList() },
                 enabled = selected.size == 2,
                 colors = ButtonDefaults.buttonColors(containerColor = TableStyle.gold, contentColor = Color.Black),
             ) {
-                Text("${De.DISCARD_CONFIRM} (${selected.size}/2)", fontWeight = FontWeight.Bold)
+                Text("${De.DISCARD_CONFIRM} (${selected.size}/2)", fontWeight = FontWeight.Bold, fontSize = (14 * uiScale).sp)
             }
         }
     }
@@ -218,25 +219,29 @@ fun DrawArea(
     opponentName: String,
     onTake: () -> Unit,
     onReject: () -> Unit,
+    uiScale: Float = 1f,
 ) {
     val revealed = snapshot.revealedCard
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val isWide = configuration.screenWidthDp > 640
+    val scaleFactor = if (isWide) 1.2f else 1.0f
 
     Column(
-        Modifier.width(300.dp),
+        Modifier.width(300.dp * scaleFactor * uiScale),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp * scaleFactor),
     ) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(26.dp),
+            horizontalArrangement = Arrangement.spacedBy(26.dp * scaleFactor),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            StockPile(snapshot.stockCount)
+            StockPile(snapshot.stockCount, scaleFactor = scaleFactor, uiScale = uiScale)
 
             if (revealed != null) {
-                CardFace(revealed, 92.dp)
+                CardFace(revealed, 92.dp * scaleFactor * uiScale)
             } else {
                 // Face down while the opponent is drawing: nothing to see yet.
-                Box(Modifier.alpha(0.55f)) { CardBack(92.dp) }
+                Box(Modifier.alpha(0.55f)) { CardBack(92.dp * scaleFactor * uiScale) }
             }
         }
 
@@ -244,21 +249,21 @@ fun DrawArea(
             Text(
                 De.DRAW_PROMPT,
                 color = Color.White.copy(alpha = 0.85f),
-                fontSize = 12.sp,
+                fontSize = (12 * uiScale).sp,
                 textAlign = TextAlign.Center,
             )
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                DrawButton(De.DRAW_TAKE, "☝", Color(0xFF2E9E5B), Modifier.weight(1f), onTake)
-                DrawButton(De.DRAW_REJECT, "🗑", Color(0xFFCC7A22), Modifier.weight(1f), onReject)
+                DrawButton(De.DRAW_TAKE, "☝", Color(0xFF2E9E5B), Modifier.weight(1f), uiScale = uiScale, onClick = onTake)
+                DrawButton(De.DRAW_REJECT, "🗑", Color(0xFFCC7A22), Modifier.weight(1f), uiScale = uiScale, onClick = onReject)
             }
         } else {
             Text(
                 De.drawingTurn(opponentName),
                 color = Color.White.copy(alpha = 0.85f),
-                fontSize = 12.sp,
+                fontSize = (12 * uiScale).sp,
             )
         }
 
@@ -295,17 +300,17 @@ fun DrawArea(
 
 /** The stock pile: a few stacked card backs with the remaining count on top. */
 @Composable
-private fun StockPile(count: Int) {
+private fun StockPile(count: Int, scaleFactor: Float = 1.0f, uiScale: Float = 1.0f) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(contentAlignment = Alignment.Center) {
             // A little stacked look under the top card.
-            Box(Modifier.offset(x = 4.dp, y = 4.dp).alpha(0.5f)) { CardBack(82.dp) }
-            Box(Modifier.offset(x = 2.dp, y = 2.dp).alpha(0.75f)) { CardBack(82.dp) }
-            CardBack(82.dp)
+            Box(Modifier.offset(x = 4.dp, y = 4.dp).alpha(0.5f)) { CardBack(82.dp * scaleFactor * uiScale) }
+            Box(Modifier.offset(x = 2.dp, y = 2.dp).alpha(0.75f)) { CardBack(82.dp * scaleFactor * uiScale) }
+            CardBack(82.dp * scaleFactor * uiScale)
             Text(
                 "$count",
                 color = Color.White,
-                fontSize = 20.sp,
+                fontSize = (20 * uiScale).sp,
                 fontWeight = FontWeight.Black,
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
@@ -314,7 +319,7 @@ private fun StockPile(count: Int) {
             )
         }
         Spacer(Modifier.height(5.dp))
-        Text(De.STOCK_LABEL, color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
+        Text(De.STOCK_LABEL, color = Color.White.copy(alpha = 0.8f), fontSize = (12 * uiScale).sp)
     }
 }
 
@@ -328,6 +333,7 @@ private fun DrawButton(
     icon: String,
     tint: Color,
     modifier: Modifier = Modifier,
+    uiScale: Float = 1.0f,
     onClick: () -> Unit,
 ) {
     Button(
@@ -337,15 +343,15 @@ private fun DrawButton(
         colors = ButtonDefaults.buttonColors(containerColor = tint, contentColor = Color.White),
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Text(icon, fontSize = 18.sp, color = Color.White.copy(alpha = 0.33f))
-            Text(title, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+            Text(icon, fontSize = (18 * uiScale).sp, color = Color.White.copy(alpha = 0.33f))
+            Text(title, fontSize = (15 * uiScale).sp, fontWeight = FontWeight.Bold, maxLines = 1)
         }
     }
 }
 
 /** Banner between hands: who won, the score and the button for the next deal. */
 @Composable
-fun HandOverBanner(winner: Team, snapshot: GameSnapshot, onNextHand: () -> Unit) {
+fun HandOverBanner(winner: Team, snapshot: GameSnapshot, onNextHand: () -> Unit, uiScale: Float = 1.0f) {
     val weWon = winner == snapshot.myTeam
     val winnerTricks = snapshot.trickCounts[winner] ?: 0
     val loserTricks = snapshot.trickCounts[winner.opponent] ?: 0
@@ -360,21 +366,21 @@ fun HandOverBanner(winner: Team, snapshot: GameSnapshot, onNextHand: () -> Unit)
             Text(
                 if (weWon) De.HAND_WON else De.HAND_LOST,
                 color = Color.White,
-                fontSize = 21.sp,
+                fontSize = (21 * uiScale).sp,
                 fontWeight = FontWeight.Bold,
             )
             Spacer(Modifier.height(10.dp))
-            Text(resultText, color = Color.White.copy(alpha = 0.75f), fontSize = 14.sp, textAlign = TextAlign.Center)
+            Text(resultText, color = Color.White.copy(alpha = 0.75f), fontSize = (14 * uiScale).sp, textAlign = TextAlign.Center)
             Spacer(Modifier.height(10.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(De.SCORE_LABEL, color = Color.White.copy(alpha = 0.7f), fontSize = 15.sp)
+                Text(De.SCORE_LABEL, color = Color.White.copy(alpha = 0.7f), fontSize = (15 * uiScale).sp)
                 Text(
                     De.weVsOpp(
                         snapshot.scores[snapshot.myTeam] ?: 0,
                         snapshot.scores[snapshot.myTeam.opponent] ?: 0,
                     ),
                     color = Color.White,
-                    fontSize = 15.sp,
+                    fontSize = (15 * uiScale).sp,
                     fontWeight = FontWeight.Bold,
                 )
             }
@@ -382,21 +388,21 @@ fun HandOverBanner(winner: Team, snapshot: GameSnapshot, onNextHand: () -> Unit)
             Button(
                 onClick = onNextHand,
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E9E5B), contentColor = Color.White),
-            ) { Text(De.NEXT_ROUND, fontWeight = FontWeight.Bold) }
+            ) { Text(De.NEXT_ROUND, fontWeight = FontWeight.Bold, fontSize = (14 * uiScale).sp) }
         }
     }
 }
 
 /** Final banner once a team reached the target points. */
 @Composable
-fun GameOverBanner(winner: Team, snapshot: GameSnapshot, onBackToMenu: () -> Unit) {
+fun GameOverBanner(winner: Team, snapshot: GameSnapshot, onBackToMenu: () -> Unit, uiScale: Float = 1.0f) {
     val weWon = winner == snapshot.myTeam
     OverlayPanel {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 if (weWon) De.GAME_WON else De.GAME_LOST,
                 color = Color.White,
-                fontSize = 30.sp,
+                fontSize = (30 * uiScale).sp,
                 fontWeight = FontWeight.Black,
             )
             Spacer(Modifier.height(10.dp))
@@ -406,34 +412,34 @@ fun GameOverBanner(winner: Team, snapshot: GameSnapshot, onBackToMenu: () -> Uni
                     snapshot.scores[snapshot.myTeam.opponent] ?: 0,
                 ),
                 color = Color.White.copy(alpha = 0.75f),
-                fontSize = 16.sp,
+                fontSize = (16 * uiScale).sp,
             )
             Spacer(Modifier.height(18.dp))
             Button(
                 onClick = onBackToMenu,
                 colors = ButtonDefaults.buttonColors(containerColor = TableStyle.gold, contentColor = Color.Black),
-            ) { Text(De.BACK_TO_MENU, fontWeight = FontWeight.Bold) }
+            ) { Text(De.BACK_TO_MENU, fontWeight = FontWeight.Bold, fontSize = (14 * uiScale).sp) }
         }
     }
 }
 
 /** Pause menu: statistics at a glance, resume or leave. */
 @Composable
-fun PauseMenu(stats: GameStats, onResume: () -> Unit, onLeave: () -> Unit) {
+fun PauseMenu(stats: GameStats, onResume: () -> Unit, onLeave: () -> Unit, uiScale: Float = 1.0f) {
     OverlayPanel {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(De.PAUSE, color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Bold)
+            Text(De.PAUSE, color = Color.White, fontSize = (21 * uiScale).sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(16.dp))
-            StatisticsGrid(stats)
+            StatisticsGrid(stats, uiScale = uiScale)
             Spacer(Modifier.height(18.dp))
             Button(
                 onClick = onResume,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = TableStyle.gold, contentColor = Color.Black),
-            ) { Text(De.RESUME_PLAY, fontWeight = FontWeight.Bold) }
+            ) { Text(De.RESUME_PLAY, fontWeight = FontWeight.Bold, fontSize = (14 * uiScale).sp) }
             Spacer(Modifier.height(8.dp))
             OutlinedButton(onClick = onLeave, modifier = Modifier.fillMaxWidth()) {
-                Text(De.MAIN_MENU, color = Color.White)
+                Text(De.MAIN_MENU, color = Color.White, fontSize = (14 * uiScale).sp)
             }
         }
     }

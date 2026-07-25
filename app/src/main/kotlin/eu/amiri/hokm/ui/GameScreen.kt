@@ -92,6 +92,7 @@ fun GameScreen(vm: SoloGameViewModel) {
                     snapshot = snapshot,
                     hakemName = vm.name(snapshot.hakem),
                     modifier = Modifier.weight(1f),
+                    uiScale = vm.uiScale,
                 )
             }
 
@@ -100,7 +101,7 @@ fun GameScreen(vm: SoloGameViewModel) {
             // Top: the partner (4P) or the single opponent (2P)
             val top = topSeat(snapshot)
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                PlayerBadge(top, vm.name(top), snapshot)
+                PlayerBadge(top, vm.name(top), snapshot, uiScale = vm.uiScale)
             }
 
             // Middle: the draw area (2P) or the trick, flanked in 4P.
@@ -111,8 +112,8 @@ fun GameScreen(vm: SoloGameViewModel) {
             ) {
                 if (snapshot.playerCount == 4) {
                     val left = seatAt(snapshot, TablePosition.LEFT)
-                    Box(Modifier.width(76.dp), contentAlignment = Alignment.Center) {
-                        PlayerBadge(left, vm.name(left), snapshot)
+                    Box(Modifier.width(76.dp * vm.uiScale), contentAlignment = Alignment.Center) {
+                        PlayerBadge(left, vm.name(left), snapshot, uiScale = vm.uiScale)
                     }
                 }
 
@@ -129,6 +130,7 @@ fun GameScreen(vm: SoloGameViewModel) {
                             opponentName = vm.name(top),
                             onTake = vm::takeCard,
                             onReject = vm::rejectCard,
+                            uiScale = vm.uiScale,
                         )
                     } else {
                         TrickArea(snapshot, Modifier.fillMaxSize())
@@ -137,20 +139,20 @@ fun GameScreen(vm: SoloGameViewModel) {
 
                 if (snapshot.playerCount == 4) {
                     val right = seatAt(snapshot, TablePosition.RIGHT)
-                    Box(Modifier.width(76.dp), contentAlignment = Alignment.Center) {
-                        PlayerBadge(right, vm.name(right), snapshot)
+                    Box(Modifier.width(76.dp * vm.uiScale), contentAlignment = Alignment.Center) {
+                        PlayerBadge(right, vm.name(right), snapshot, uiScale = vm.uiScale)
                     }
                 }
             }
 
             // Own row: badge, turn hint, fanned hand.
             Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                PlayerBadge(snapshot.seat, vm.name(snapshot.seat), snapshot, showCards = false)
+                PlayerBadge(snapshot.seat, vm.name(snapshot.seat), snapshot, showCards = false, uiScale = vm.uiScale)
                 turnHint(snapshot, vm)?.let {
                     Text(
                         it,
                         color = Color.White.copy(alpha = 0.75f),
-                        fontSize = 12.sp,
+                        fontSize = (12 * vm.uiScale).sp,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(top = 2.dp),
                     )
@@ -162,10 +164,11 @@ fun GameScreen(vm: SoloGameViewModel) {
                 legalCards = snapshot.legalCards.toSet(),
                 isMyTurn = snapshot.isMyTurn && snapshot.phase == GamePhase.Playing,
                 onPlay = vm::play,
+                uiScale = vm.uiScale,
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .height(158.dp)
+                    .height((200 * vm.uiScale).dp) // Sufficient height for large cards and spread
                     .padding(bottom = 8.dp)
                     .onGloballyPositioned { frames.hand = it.boundsInRoot() },
             )
@@ -232,25 +235,26 @@ private fun coachAllowed(step: CoachStep, snapshot: GameSnapshot, paused: Boolea
 
 @Composable
 private fun Overlays(snapshot: GameSnapshot, vm: SoloGameViewModel) {
+    val uiScale = vm.uiScale
     if (vm.paused) {
-        DimmedOverlay { PauseMenu(vm.stats, onResume = vm::resume, onLeave = vm::leaveTable) }
+        DimmedOverlay { PauseMenu(vm.stats, onResume = vm::resume, onLeave = vm::leaveTable, uiScale = uiScale) }
         return
     }
     when (val phase = snapshot.phase) {
         GamePhase.ChoosingTrump -> if (snapshot.iAmHakem) DimmedOverlay {
-            TrumpPicker(snapshot.hand, vm::chooseMode)
+            TrumpPicker(snapshot.hand, vm::chooseMode, uiScale = uiScale)
         }
 
         GamePhase.Discarding -> if (snapshot.needsDiscard) DimmedOverlay {
-            DiscardPicker(snapshot.hand, hakemDeclaration(snapshot, vm), vm::discard)
+            DiscardPicker(snapshot.hand, hakemDeclaration(snapshot, vm), vm::discard, uiScale = uiScale)
         }
 
         is GamePhase.HandOver -> DimmedOverlay {
-            HandOverBanner(phase.winner, snapshot, vm::nextHand)
+            HandOverBanner(phase.winner, snapshot, vm::nextHand, uiScale = uiScale)
         }
 
         is GamePhase.GameOver -> DimmedOverlay {
-            GameOverBanner(phase.winner, snapshot, vm::leaveTable)
+            GameOverBanner(phase.winner, snapshot, vm::leaveTable, uiScale = uiScale)
         }
 
         else -> Unit
