@@ -43,7 +43,8 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
     private val settings = SettingsStore(app)
 
     private var game: HokmGame? = null
-    private var difficulty = BotDifficulty.NORMAL
+    var botDifficulty by mutableStateOf(settings.botDifficulty)
+        private set
     private var botJob: Job? = null
 
     // Per-game counters for the statistics, mirroring iOS `GameSession`.
@@ -72,9 +73,13 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
         needsTutorial = false
     }
 
-    fun newGame(players: Int, diff: BotDifficulty) {
+    fun updateBotDifficulty(value: BotDifficulty) {
+        settings.botDifficulty = value
+        botDifficulty = value
+    }
+
+    fun newGame(players: Int) {
         botJob?.cancel()
-        difficulty = diff
         handsWonThisGame = 0
         sweepsThisGame = 0
         recordedHands.clear()
@@ -96,7 +101,7 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
             return
         }
         botJob?.cancel()
-        difficulty = saved.difficulty
+        botDifficulty = saved.difficulty
         handsWonThisGame = saved.handsWonThisGame
         sweepsThisGame = saved.sweepsThisGame
         recordedHands.clear()
@@ -167,7 +172,7 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
                 val g = game ?: break
                 if (g.phase == GamePhase.Discarding) {
                     val seat = g.pendingDiscards.firstOrNull { it != humanSeat } ?: break
-                    val action = HokmBot.nextAction(g.snapshot(seat), difficulty) ?: break
+                    val action = HokmBot.nextAction(g.snapshot(seat), botDifficulty) ?: break
                     delay(BOT_DELAY_MS)
                     g.apply(action, from = seat)
                     publish()
@@ -175,7 +180,7 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 val seat = g.turn ?: break
                 if (seat == humanSeat) break
-                val action = HokmBot.nextAction(g.snapshot(seat), difficulty) ?: break
+                val action = HokmBot.nextAction(g.snapshot(seat), botDifficulty) ?: break
                 // In the two-player draw phase the bot pauses longer so the
                 // player can actually read which card was just thrown away.
                 delay(if (g.phase == GamePhase.Drawing) DRAW_DELAY_MS else BOT_DELAY_MS)
@@ -202,7 +207,7 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
             saveStore.save(
                 SavedGame(
                     state = g.state(),
-                    difficulty = difficulty,
+                    difficulty = botDifficulty,
                     handsWonThisGame = handsWonThisGame,
                     sweepsThisGame = sweepsThisGame,
                     recordedHands = recordedHands.toList(),

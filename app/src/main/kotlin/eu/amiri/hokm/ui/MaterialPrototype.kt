@@ -1,7 +1,12 @@
 package eu.amiri.hokm.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -9,55 +14,64 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * A conceptual prototype showing how Hokm would look with a full Material 3 implementation.
- * It uses a Scaffold with a NavigationBar and modern M3 components.
+ * A refined prototype matching the iOS screenshot design.
+ * Features: Large calligraphic logo, iOS-style cards, and a glassmorphism bottom bar.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun M3HokmPrototype() {
     var selectedItem by remember { mutableIntStateOf(0) }
-    val items = listOf("Spielen", "Statistik", "Regeln", "Tutorial")
-    val icons = listOf(Icons.Default.PlayArrow, Icons.Default.BarChart, Icons.Default.Book, Icons.Default.Help)
+    val items = listOf("Startseite", "Spielregeln", "Statistik", "Einstellungen")
+    val icons = listOf(Icons.Default.Home, Icons.Default.Info, Icons.Default.Info, Icons.Default.Settings)
 
-    // Using the app's FeltBackground as the base to keep the identity
     FeltBackground {
         Scaffold(
-            containerColor = Color.Transparent, // Let the felt background show through
-            topBar = {
-                CenterAlignedTopAppBar(
-                    title = { Text("HOKM", fontWeight = FontWeight.Black, letterSpacing = 2.sp) },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = Color.Transparent,
-                        titleContentColor = TableStyle.gold
-                    )
-                )
-            },
+            containerColor = Color.Transparent,
             bottomBar = {
-                NavigationBar(
-                    containerColor = Color.Black.copy(alpha = 0.5f),
-                    contentColor = Color.White
+                // Glassmorphism Navigation Bar
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 20.dp)
+                        .clip(RoundedCornerShape(32.dp))
+                        .background(Color.Black.copy(alpha = 0.4f))
+                        .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(32.dp))
                 ) {
-                    items.forEachIndexed { index, item ->
-                        NavigationBarItem(
-                            icon = { Icon(icons[index], contentDescription = item) },
-                            label = { Text(item) },
-                            selected = selectedItem == index,
-                            onClick = { selectedItem = index },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Color.Black,
-                                selectedTextColor = TableStyle.gold,
-                                indicatorColor = TableStyle.gold,
-                                unselectedIconColor = Color.White.copy(alpha = 0.6f),
-                                unselectedTextColor = Color.White.copy(alpha = 0.6f)
+                    NavigationBar(
+                        containerColor = Color.Transparent,
+                        contentColor = Color.White,
+                        tonalElevation = 0.dp
+                    ) {
+                        items.forEachIndexed { index, item ->
+                            NavigationBarItem(
+                                icon = {
+                                    Icon(
+                                        icons[index],
+                                        contentDescription = item,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                },
+                                label = { Text(item, fontSize = 10.sp) },
+                                selected = selectedItem == index,
+                                onClick = { selectedItem = index },
+                                colors = NavigationBarItemDefaults.colors(
+                                    selectedIconColor = Color(0xFFC5EA70), // Light green tint from screenshot
+                                    selectedTextColor = Color.White,
+                                    indicatorColor = Color.Transparent,
+                                    unselectedIconColor = Color.White.copy(alpha = 0.7f),
+                                    unselectedTextColor = Color.White.copy(alpha = 0.7f)
+                                )
                             )
-                        )
+                        }
                     }
                 }
             }
@@ -65,9 +79,8 @@ fun M3HokmPrototype() {
             Box(Modifier.padding(padding).fillMaxSize()) {
                 when (selectedItem) {
                     0 -> M3HomeContent()
-                    1 -> M3StatisticsContent()
                     else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Hier erscheinen die ${items[selectedItem]}", color = Color.White)
+                        Text("Hier erscheinen die $items[selectedItem]", color = Color.White)
                     }
                 }
             }
@@ -81,125 +94,131 @@ fun M3HomeContent() {
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(horizontal = 24.dp, vertical = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Resume Card (if applicable)
-        ElevatedCard(
-            onClick = { /* Resume */ },
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.elevatedCardColors(containerColor = TableStyle.gold)
+        // Logo Section
+        Text(
+            "حُکم",
+            color = TableStyle.gold,
+            fontSize = 110.sp,
+            fontWeight = FontWeight.Normal,
+            fontFamily = FontFamily.Serif,
+            modifier = Modifier.offset(y = 20.dp)
+        )
+        Text(
+            "Hokm",
+            color = Color.White,
+            fontSize = 80.sp,
+            fontWeight = FontWeight.ExtraBold,
+            fontFamily = FontFamily.SansSerif
+        )
+        
+        Text(
+            "Das persische Stichspiel – 2 Teams, 13 Karten,\n7 Stiche",
+            color = Color.White.copy(alpha = 0.7f),
+            fontSize = 15.sp,
+            textAlign = TextAlign.Center,
+            lineHeight = 22.sp,
+            modifier = Modifier.padding(top = 16.dp)
+        )
+
+        Spacer(Modifier.height(50.dp))
+
+        // Action Cards
+        IOSActionCard(
+            title = "Spiel fortsetzen",
+            subtitle = "Dein unterbrochenes Solo-Spiel wartet",
+            containerColor = Color(0xFF2E9E5B),
+            icon = Icons.Default.PlayArrow,
+            iconColor = Color.White
+        )
+
+        Spacer(Modifier.height(12.dp))
+
+        IOSActionCard(
+            title = "Neues Solo-Spiel",
+            subtitle = "2 Spieler",
+            containerColor = Color.Black.copy(alpha = 0.3f),
+            icon = Icons.Default.Person,
+            iconColor = Color.White.copy(alpha = 0.7f)
+        )
+
+        Spacer(Modifier.height(24.dp))
+
+        // Tutorial Chip
+        Surface(
+            onClick = { /* Tutorial */ },
+            color = Color.White.copy(alpha = 0.15f),
+            shape = CircleShape,
+            modifier = Modifier.height(36.dp)
         ) {
             Row(
-                Modifier.padding(20.dp).fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                Modifier.padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(Icons.Default.History, "Resume", modifier = Modifier.size(32.dp), tint = Color.Black)
-                Spacer(Modifier.width(16.dp))
-                Column {
-                    Text("Spiel fortsetzen", variant = MaterialTheme.typography.titleMedium, color = Color.Black)
-                    Text("Punkte: 12 : 9 (Hand 4)", variant = MaterialTheme.typography.bodySmall, color = Color.Black.copy(alpha = 0.7f))
-                }
+                Icon(Icons.Default.Info, null, tint = Color.White.copy(alpha = 0.8f), modifier = Modifier.size(18.dp))
+                Text("Tutorial", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
             }
         }
-
-        Text("Neues Spiel", variant = MaterialTheme.typography.headlineSmall, color = Color.White)
-
-        OutlinedCard(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.outlinedCardColors(containerColor = Color.White.copy(alpha = 0.05f))
-        ) {
-            Column(Modifier.padding(16.dp)) {
-                Text("Spielermodus", variant = MaterialTheme.typography.labelLarge, color = TableStyle.gold)
-                Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(selected = true, onClick = {}, label = { Text("2 Spieler") })
-                    FilterChip(selected = false, onClick = {}, label = { Text("4 Spieler") })
-                }
-            }
-        }
-
-        OutlinedCard(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.outlinedCardColors(containerColor = Color.White.copy(alpha = 0.05f))
-        ) {
-            Column(Modifier.padding(16.dp)) {
-                Text("Bot-Schwierigkeit", variant = MaterialTheme.typography.labelLarge, color = TableStyle.gold)
-                Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(selected = false, onClick = {}, label = { Text("Leicht") })
-                    FilterChip(selected = true, onClick = {}, label = { Text("Mittel") })
-                    FilterChip(selected = false, onClick = {}, label = { Text("Schwer") })
-                }
-            }
-        }
-
-        Button(
-            onClick = { /* Start */ },
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E9E5B))
-        ) {
-            Text("Solo-Spiel starten", fontWeight = FontWeight.Bold)
-        }
+        
+        Spacer(Modifier.height(40.dp))
     }
 }
 
 @Composable
-fun M3StatisticsContent() {
-    Column(
-        Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+private fun IOSActionCard(
+    title: String,
+    subtitle: String,
+    containerColor: Color,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    iconColor: Color
+) {
+    Surface(
+        onClick = { /* Action */ },
+        color = containerColor,
+        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(88.dp)
+            .border(
+                width = 1.dp,
+                color = Color.White.copy(alpha = 0.1f),
+                shape = RoundedCornerShape(24.dp)
+            )
     ) {
-        Text("Deine Bilanz", variant = MaterialTheme.typography.headlineSmall, color = Color.White)
-
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            StatCard("Siegquote", "68 %", Icons.Default.TrendingUp, Modifier.weight(1f))
-            StatCard("Spiele", "142", Icons.Default.Numbers, Modifier.weight(1f))
-        }
-
-        ElevatedCard(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.elevatedCardColors(containerColor = Color.White.copy(alpha = 0.1f))
+        Row(
+            Modifier.padding(horizontal = 20.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(Modifier.padding(16.dp)) {
-                Text("Details", variant = MaterialTheme.typography.titleMedium, color = TableStyle.gold)
-                Spacer(Modifier.height(12.dp))
-                StatRow("Gewonnene Runden", "842")
-                StatRow("Kut / Hakem-Kut", "24")
-                StatRow("Aktuelle Serie", "5 Siege")
-                StatRow("Beste Serie", "12 Siege")
+            // Left Icon
+            Box(
+                Modifier
+                    .size(40.dp)
+                    .clip(CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, null, tint = iconColor, modifier = Modifier.size(28.dp))
             }
+
+            Spacer(Modifier.width(16.dp))
+
+            // Text
+            Column(Modifier.weight(1f)) {
+                Text(title, color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                Text(subtitle, color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
+            }
+
+            // Right Chevron
+            Icon(
+                Icons.Default.KeyboardArrowRight,
+                null,
+                tint = Color.White.copy(alpha = 0.3f),
+                modifier = Modifier.size(16.dp)
+            )
         }
     }
-}
-
-@Composable
-fun StatCard(label: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector, modifier: Modifier = Modifier) {
-    ElevatedCard(
-        modifier = modifier,
-        colors = CardDefaults.elevatedCardColors(containerColor = Color.White.copy(alpha = 0.1f))
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Icon(icon, null, tint = TableStyle.gold, modifier = Modifier.size(24.dp))
-            Spacer(Modifier.height(8.dp))
-            Text(value, variant = MaterialTheme.typography.headlineMedium, color = Color.White, fontWeight = FontWeight.Bold)
-            Text(label, variant = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.6f))
-        }
-    }
-}
-
-@Composable
-fun StatRow(label: String, value: String) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(label, color = Color.White.copy(alpha = 0.7f))
-        Text(value, color = Color.White, fontWeight = FontWeight.Bold)
-    }
-}
-
-@Composable
-private fun Text(text: String, variant: androidx.compose.ui.text.TextStyle, color: Color, modifier: Modifier = Modifier) {
-    Text(text, style = variant, color = color, modifier = modifier)
 }
 
 @Preview(showBackground = true, device = "spec:width=411dp,height=891dp")

@@ -109,7 +109,10 @@ fun TrickArea(snapshot: GameSnapshot, modifier: Modifier = Modifier) {
                 .background(Color.Black.copy(alpha = 0.14f)),
         )
 
-        Box(Modifier.alpha(if (showLast) 0.45f else 1f)) {
+        Box(
+            Modifier.fillMaxSize().alpha(if (showLast) 0.45f else 1f),
+            contentAlignment = Alignment.Center
+        ) {
             trick.plays.forEach { play ->
                 val (dx, dy) = trickOffset(snapshot, play.seat, cardWidth, cardHeight)
                 CardFace(play.card, cardWidth, Modifier.offset(x = dx, y = dy))

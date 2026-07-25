@@ -38,20 +38,27 @@ Basiert auf dem Portierungsleitfaden aus dem iOS-Repo
   - **Spielstandspeicher**: Das laufende Solo-Spiel wird automatisch
     gesichert und lässt sich auch nach einem App-Neustart fortsetzen.
 
-  Die Oberfläche ist derzeit **auf Deutsch**; Wortmarke, Lokalisierung
+  Die Oberfläche ist vollständig **Edge-to-Edge** optimiert und respektiert
+  System-Insets (Safe Area) für Statusleiste, Notch und Gesten-Navigation.
+  Derzeit ist die App **auf Deutsch**; Wortmarke, Lokalisierung
   (en/fa + RTL), Sounds/Haptik und Startscreen folgen.
 
 ## Bauen
 
-Erfordert JDK 17 und das Android SDK (Platform 34).
+Erfordert **JDK 21** (wird via Gradle Toolchains automatisch aufgelöst) und
+das Android SDK (Platform 34).
 
 ```bash
-gradle :engine:test        # Engine-Tests (schnell, ohne Android-SDK)
-gradle :app:assembleDebug  # Debug-APK bauen
+./gradlew :engine:test        # Engine-Tests (schnell, ohne Android-SDK)
+./gradlew :app:assembleDebug  # Debug-APK bauen
 ```
 
-Beim ersten Öffnen in Android Studio wird der Gradle-Wrapper erzeugt
-(`gradle wrapper`), danach genügt `./gradlew …`.
+Das Projekt nutzt den **Gradle Wrapper** und moderne Build-Standards:
+- **Gradle 9.5**
+- **Android Gradle Plugin 9.3.1**
+- **Kotlin 2.2.10** (mit modernem `compilerOptions` DSL)
+- **Java 21** (Daemon & Toolchain)
+
 
 ## Roadmap (Phasen aus dem Leitfaden)
 

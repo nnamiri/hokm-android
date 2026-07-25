@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.OutlinedButton
@@ -26,37 +26,32 @@ import androidx.compose.ui.unit.sp
  * scoring and the high/low variant.
  */
 @Composable
-fun RulesScreen(onBack: () -> Unit) {
-    FeltBackground {
+fun RulesScreen() {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .verticalScroll(rememberScrollState())
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(De.RULES, color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(24.dp))
+
         Column(
-            Modifier
-                .fillMaxSize()
-                .safeDrawingPadding()
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
-            Text(De.RULES, color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(20.dp))
-
-            Column(
-                Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(18.dp),
-            ) {
-                RuleSection(De.RULES_GAME_TITLE, De.RULES_GAME_TEXT)
-                RuleSection(De.RULES_HAKEM_TITLE, De.RULES_HAKEM_TEXT)
-                RuleSection(De.RULES_2P_TITLE, De.RULES_2P_TEXT)
-                RuleSection(De.RULES_TRICK_TITLE, De.RULES_TRICK_TEXT)
-                RuleSection(De.RULES_SCORING_TITLE, De.RULES_SCORING_TEXT)
-                RuleSection(De.RULES_HIGH_LOW_TITLE, De.RULES_HIGH_LOW_TEXT)
-                RuleSection(De.RULES_APP_TITLE, De.RULES_APP_TEXT)
-            }
-
-            Spacer(Modifier.height(24.dp))
-            OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-                Text(De.BACK, color = Color.White)
-            }
+            RuleSection(De.RULES_GAME_TITLE, De.RULES_GAME_TEXT)
+            RuleSection(De.RULES_HAKEM_TITLE, De.RULES_HAKEM_TEXT)
+            RuleSection(De.RULES_2P_TITLE, De.RULES_2P_TEXT)
+            RuleSection(De.RULES_TRICK_TITLE, De.RULES_TRICK_TEXT)
+            RuleSection(De.RULES_SCORING_TITLE, De.RULES_SCORING_TEXT)
+            RuleSection(De.RULES_HIGH_LOW_TITLE, De.RULES_HIGH_LOW_TEXT)
+            RuleSection(De.RULES_APP_TITLE, De.RULES_APP_TEXT)
         }
+        
+        Spacer(Modifier.height(40.dp))
     }
 }
 
