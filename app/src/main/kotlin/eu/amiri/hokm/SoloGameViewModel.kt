@@ -6,28 +6,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import eu.amiri.hokm.data.GameStats
 import eu.amiri.hokm.data.SavedGame
 import eu.amiri.hokm.data.SavedGameStore
 import eu.amiri.hokm.data.SettingsStore
 import eu.amiri.hokm.data.StatsStore
-import eu.amiri.hokm.engine.AceDraw
-import eu.amiri.hokm.engine.BotDifficulty
-import eu.amiri.hokm.engine.Card
-import eu.amiri.hokm.engine.GamePhase
-import eu.amiri.hokm.engine.GameSnapshot
-import eu.amiri.hokm.engine.HokmBot
-import eu.amiri.hokm.engine.HokmException
-import eu.amiri.hokm.engine.HokmGame
-import eu.amiri.hokm.engine.HokmRules
-import eu.amiri.hokm.engine.PlayerAction
-import eu.amiri.hokm.engine.Seat
-import eu.amiri.hokm.engine.Team
-import eu.amiri.hokm.engine.TrumpChoice
-import eu.amiri.hokm.engine.snapshot
+import eu.amiri.hokm.engine.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Runs a local game against bots and exposes the human's [GameSnapshot] as
@@ -53,15 +41,15 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
     private val recordedHands = mutableSetOf<Int>()
     private var gameRecorded = false
 
-    var snapshot by mutableStateOf<GameSnapshot?>(null)
+    var snapshot by mutableStateOf<GameSnapshot?>(value = null)
         private set
-    var started by mutableStateOf(false)
+    var started by mutableStateOf(value = false)
         private set
-    var paused by mutableStateOf(false)
+    var paused by mutableStateOf(value = false)
         private set
-    var stats by mutableStateOf(statsStore.stats)
+    var stats by mutableStateOf(value = statsStore.stats)
         private set
-    var canResume by mutableStateOf(saveStore.hasSavedGame)
+    var canResume by mutableStateOf(value = saveStore.hasSavedGame)
         private set
 
     /** True until the tutorial has been seen once – it then opens on first launch. */
@@ -173,7 +161,7 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
                 if (g.phase == GamePhase.Discarding) {
                     val seat = g.pendingDiscards.firstOrNull { it != humanSeat } ?: break
                     val action = HokmBot.nextAction(g.snapshot(seat), botDifficulty) ?: break
-                    delay(BOT_DELAY_MS)
+                    delay(BOT_DELAY_MS.milliseconds)
                     g.apply(action, from = seat)
                     publish()
                     continue
@@ -183,7 +171,7 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
                 val action = HokmBot.nextAction(g.snapshot(seat), botDifficulty) ?: break
                 // In the two-player draw phase the bot pauses longer so the
                 // player can actually read which card was just thrown away.
-                delay(if (g.phase == GamePhase.Drawing) DRAW_DELAY_MS else BOT_DELAY_MS)
+                delay(if (g.phase == GamePhase.Drawing) DRAW_DELAY_MS.milliseconds else BOT_DELAY_MS.milliseconds)
                 g.apply(action, from = seat)
                 publish()
             }
@@ -193,7 +181,7 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
     private fun publish() {
         val snap = game?.snapshot(humanSeat)
         snapshot = snap
-        if (snap != null) trackStatistics(snap)
+        snap?.let { trackStatistics(it) }
         persist()
     }
 
@@ -211,7 +199,7 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
                     handsWonThisGame = handsWonThisGame,
                     sweepsThisGame = sweepsThisGame,
                     recordedHands = recordedHands.toList(),
-                )
+                ),
             )
             canResume = true
         }

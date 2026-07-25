@@ -1,6 +1,5 @@
 package eu.amiri.hokm.ui
 
-import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -33,11 +32,11 @@ import eu.amiri.hokm.data.GameStats
 import eu.amiri.hokm.engine.BotDifficulty
 
 /** The areas reachable from the home screen. */
-private enum class MenuArea(val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
+private enum class MenuArea(val label: String, val icon: ImageVector) {
     HOME("Startseite", Icons.Default.Home),
     RULES("Spielregeln", Icons.Default.Info),
     STATISTICS("Statistik", Icons.Default.Info),
-    SETTINGS("Einstellungen", Icons.Default.Settings)
+    SETTINGS("Einstellungen", Icons.Default.Settings),
 }
 
 @Composable
@@ -61,7 +60,7 @@ fun HokmApp(vm: SoloGameViewModel = viewModel()) {
 private fun HokmNavigationShell(
     activeArea: MenuArea,
     onAreaChange: (MenuArea) -> Unit,
-    vm: SoloGameViewModel
+    vm: SoloGameViewModel,
 ) {
     FeltBackground {
         Scaffold(
@@ -103,8 +102,7 @@ private fun HokmNavigationBar(activeArea: MenuArea, onAreaChange: (MenuArea) -> 
                 label = area.label,
                 icon = area.icon,
                 selected = selected,
-                onClick = { onAreaChange(area) }
-            )
+            ) { onAreaChange(area) }
         }
     }
 }
@@ -184,7 +182,7 @@ private fun SettingsScreen(vm: SoloGameViewModel) {
 /** Home screen: resume, new game. */
 @Composable
 private fun MenuScreen(vm: SoloGameViewModel) {
-    var showTutorial by remember { mutableStateOf(false) }
+    var showTutorial by remember { mutableStateOf(value = false) }
 
     if (showTutorial) {
         TutorialScreen(onFinish = { showTutorial = false })
@@ -381,14 +379,14 @@ fun StatisticsScreen(stats: GameStats, onReset: () -> Unit) {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text("Detail-Statistik", color = TableStyle.gold, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(4.dp))
-                    StatRow(De.GAMES, "${stats.gamesPlayed}")
-                    StatRow(De.WON, "${stats.gamesWon}")
-                    StatRow(De.LOST, "${stats.gamesLost}")
+                    StatRow(De.GAMES, stats.gamesPlayed.toString())
+                    StatRow(De.WON, stats.gamesWon.toString())
+                    StatRow(De.LOST, stats.gamesLost.toString())
                     StatRow(De.WIN_RATE, "${stats.winPercent} %")
-                    StatRow(De.STREAK, "${stats.currentStreak}")
-                    StatRow(De.BEST_STREAK, "${stats.bestStreak}")
-                    StatRow(De.ROUNDS_WON, "${stats.handsWon}")
-                    StatRow(De.KOT_ROUNDS, "${stats.sweeps}")
+                    StatRow(De.STREAK, stats.currentStreak.toString())
+                    StatRow(De.BEST_STREAK, stats.bestStreak.toString())
+                    StatRow(De.ROUNDS_WON, stats.handsWon.toString())
+                    StatRow(De.KOT_ROUNDS, stats.sweeps.toString())
                 }
             }
             Spacer(Modifier.height(24.dp))

@@ -50,7 +50,7 @@ private const val PAGE_COUNT = 5
  */
 @Composable
 fun TutorialScreen(onFinish: () -> Unit) {
-    val pagerState = rememberPagerState(pageCount = { PAGE_COUNT })
+    val pagerState = rememberPagerState { PAGE_COUNT }
     val scope = rememberCoroutineScope()
 
     FeltBackground {
@@ -60,7 +60,7 @@ fun TutorialScreen(onFinish: () -> Unit) {
                     .fillMaxWidth()
                     .statusBarsPadding()
                     .padding(16.dp),
-                horizontalArrangement = Arrangement.End
+                horizontalArrangement = Arrangement.End,
             ) {
                 Text(
                     De.SKIP,
@@ -120,7 +120,7 @@ fun TutorialScreen(onFinish: () -> Unit) {
                     ) { Text("‹  ${De.BACK}", color = Color.White) }
                 }
                 Spacer(Modifier.weight(1f))
-                val isLast = pagerState.currentPage == PAGE_COUNT - 1
+                val isLast = (pagerState.currentPage == PAGE_COUNT - 1)
                 Button(
                     onClick = {
                         if (isLast) {
