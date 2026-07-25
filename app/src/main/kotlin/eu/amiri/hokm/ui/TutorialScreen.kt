@@ -161,15 +161,23 @@ private fun TutorialPage(page: Int) {
 
         1 -> PageBody(De.OB2_TITLE, De.OB2_TEXT) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Row {
-                    listOf(
-                        Card(Rank.ACE, Suit.SPADES),
-                        Card(Rank.KING, Suit.SPADES),
-                        Card(Rank.NINE, Suit.HEARTS),
-                        Card(Rank.QUEEN, Suit.DIAMONDS),
-                        Card(Rank.THREE, Suit.CLUBS),
-                    ).forEachIndexed { index, card ->
-                        CardFace(card, OverlayCardWidth, Modifier.offset(x = (-16).dp * index.toFloat()))
+                // Centered overlapping stack
+                Box(contentAlignment = Alignment.Center) {
+                    val overlap = 22.dp
+                    val count = 5
+                    val totalWidth = OverlayCardWidth + overlap * (count - 1)
+                    
+                    // We wrap in a Box of totalWidth to ensure Box(Alignment.Center) has a base
+                    Box(Modifier.width(totalWidth)) {
+                        listOf(
+                            Card(Rank.ACE, Suit.SPADES),
+                            Card(Rank.KING, Suit.SPADES),
+                            Card(Rank.NINE, Suit.HEARTS),
+                            Card(Rank.QUEEN, Suit.DIAMONDS),
+                            Card(Rank.THREE, Suit.CLUBS),
+                        ).forEachIndexed { index, card ->
+                            CardFace(card, OverlayCardWidth, Modifier.offset(x = overlap * index))
+                        }
                     }
                 }
                 Spacer(Modifier.height(12.dp))
@@ -261,17 +269,22 @@ private fun PageBody(title: String, text: String, illustration: @Composable () -
 
 @Composable
 private fun SeatBubble(text: String, color: Color) {
-    Text(
-        text,
-        color = Color.White,
-        fontSize = 12.sp,
-        fontWeight = FontWeight.SemiBold,
+    Box(
         modifier = Modifier
+            .widthIn(min = 100.dp)
             .clip(CircleShape)
             .background(color.copy(alpha = 0.9f))
             .border(1.5.dp, Color.White.copy(alpha = 0.55f), CircleShape)
             .padding(horizontal = 12.dp, vertical = 6.dp),
-    )
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text,
+            color = Color.White,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+        )
+    }
 }
 
 @Composable
@@ -293,11 +306,18 @@ private fun ScoreExampleRow(label: String, points: String) {
 @Composable
 private fun IconLabel(icon: String, label: String) {
     Column(
-        Modifier.width(64.dp),
+        Modifier.width(72.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Text(icon, fontSize = 28.sp, color = Color.White)
-        Spacer(Modifier.height(4.dp))
-        Text(label, color = Color.White, fontSize = 11.sp)
+        Box(Modifier.height(34.dp), contentAlignment = Alignment.BottomCenter) {
+            Text(
+                icon, 
+                fontSize = 28.sp, 
+                color = Color.White,
+                modifier = if (icon == "♟") Modifier.offset(y = 2.dp) else Modifier
+            )
+        }
+        Text(label, color = Color.White, fontSize = 11.sp, textAlign = TextAlign.Center)
     }
 }
