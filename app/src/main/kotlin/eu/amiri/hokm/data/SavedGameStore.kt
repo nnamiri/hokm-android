@@ -21,6 +21,8 @@ data class SavedGame(
     val sweepsThisGame: Int = 0,
     /** Hand numbers already counted, so a resume never double-counts them. */
     val recordedHands: List<Int> = emptyList(),
+    /** Bot names by seat, so a resumed game keeps the same opponents. */
+    val botNames: Map<String, String> = emptyMap(),
 )
 
 /**

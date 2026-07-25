@@ -26,6 +26,7 @@ object De {
     // Table
     const val YOU = "Du"
     const val PAUSE = "Pause"
+    const val ROUND_WORD = "Runde"
     const val YOUR_TURN = "Du bist am Zug"
     const val POINTS = "Punkte"
     const val TRICKS = "Stiche"
@@ -151,6 +152,17 @@ object De {
         "Starte solo gegen Bots – zu zweit oder zu viert, Stärke im Menü wählbar. Mit der " +
             "Pause-Taste kannst du jederzeit unterbrechen – dein Spiel wird automatisch " +
             "gespeichert und wartet auf dich."
+
+    // In-game spotlight tutorial (first 2P/4P game)
+    const val GOT_IT = "Alles klar!"
+    const val COACH_HEADER =
+        "Deine Anzeige oben: Gold ist immer deine Seite. In der Mitte Punkte, Stiche, " +
+            "Hakem und Trumpf – rechts außen die Runde."
+    const val COACH_DRAW =
+        "Ihr zieht jetzt abwechselnd: Nimm die offene Karte oder wirf sie ab – bis jeder " +
+            "13 Karten hat. Danach beginnt das Stichspiel."
+    const val COACH_HAND =
+        "Deine Hand: Bediene die angespielte Farbe – hervorgehobene Karten sind gerade spielbar."
 
     // Statistics
     const val STATISTICS = "Statistik"

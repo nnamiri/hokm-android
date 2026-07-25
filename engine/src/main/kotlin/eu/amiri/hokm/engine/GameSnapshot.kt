@@ -23,6 +23,8 @@ data class GameSnapshot(
     val turn: Seat?,
     val legalCards: List<Card>,
     val playerCount: Int,
+    /** Points needed to win the game – shown as "round / target" in the HUD. */
+    val pointsToWin: Int,
     val stockCount: Int,
     val revealedCard: Card?,
     val pendingDiscards: List<Seat>,
@@ -57,6 +59,7 @@ fun HokmGame.snapshot(forSeat: Seat): GameSnapshot = GameSnapshot(
     turn = turn,
     legalCards = legalCards(forSeat),
     playerCount = rules.playerCount,
+    pointsToWin = rules.pointsToWinGame,
     stockCount = stockCount,
     revealedCard = if (turn == forSeat) revealedCard else null,
     pendingDiscards = pendingDiscards.toList(),

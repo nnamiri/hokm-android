@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -235,103 +236,162 @@ private fun CardBackFan(count: Int, rotated: Boolean) {
 }
 
 /**
- * Compact top bar: score, tricks, declaration, hakem and round – one line,
- * nothing ever wraps. Port of the iOS `ScoreHeaderView`.
+ * Top bar next to the pause button. Layout (right of the pause button):
+ *
+ *     ┌ Punkte ┐ ┌ Hakem ─┐          ┌ Runde ┐
+ *     └ Stiche ┘ └ Trumpf ┘          └  1/3  ┘
+ *
+ * The four info pills form one 2x2 cluster that sits with equal flexible gaps
+ * between the pause button (left) and the two-line round display pinned to
+ * the trailing edge. Port of the iOS `ScoreHeaderView`.
  */
 @Composable
-fun ScoreHeader(snapshot: GameSnapshot, hakemName: String, modifier: Modifier = Modifier) {
+fun ScoreHeader(
+    snapshot: GameSnapshot,
+    hakemName: String,
+    modifier: Modifier = Modifier,
+    showTrump: Boolean = true,
+) {
     val myTeam = snapshot.myTeam
+
     Row(
         modifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        ScoreChip(
-            De.POINTS,
-            snapshot.scores[myTeam] ?: 0,
-            snapshot.scores[myTeam.opponent] ?: 0,
-        )
-        ScoreChip(
-            De.TRICKS,
-            snapshot.trickCounts[myTeam] ?: 0,
-            snapshot.trickCounts[myTeam.opponent] ?: 0,
-        )
+        Spacer(Modifier.weight(1f))
 
-        Spacer(Modifier.width(4.dp))
-
-        snapshot.trumpChoice?.let { choice ->
-            Row(
-                Modifier
-                    .clip(CircleShape)
-                    .background(Color.Black.copy(alpha = 0.35f))
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                when (choice) {
-                    is TrumpChoice.OfSuit -> {
+        // The cluster: points next to hakem, points above tricks, trump at
+        // the cluster's bottom right. Both columns keep a uniform pill width.
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                ScorePill(
+                    De.POINTS,
+                    snapshot.scores[myTeam] ?: 0,
+                    snapshot.scores[myTeam.opponent] ?: 0,
+                    Modifier.width(SCORE_PILL_WIDTH),
+                )
+                LabeledPill(De.HAKEM, Modifier.width(INFO_PILL_WIDTH)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text("♛", color = TableStyle.gold, fontSize = 11.sp)
                         Text(
-                            choice.suit.symbol,
-                            color = if (choice.suit.isRed) Color(1f, 0.45f, 0.45f) else Color.White,
-                            fontSize = 12.sp,
-                        )
-                        Text(
-                            choice.suit.germanName,
+                            hakemName,
                             color = Color.White,
-                            fontSize = 12.sp,
+                            fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
-                    TrumpChoice.High -> Text(
-                        "↑ ${De.HIGH}",
-                        color = Color(0.4f, 0.85f, 0.5f),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    TrumpChoice.Low -> Text(
-                        "↓ ${De.LOW}",
-                        color = Color(1f, 0.7f, 0.3f),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                    )
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                ScorePill(
+                    De.TRICKS,
+                    snapshot.trickCounts[myTeam] ?: 0,
+                    snapshot.trickCounts[myTeam.opponent] ?: 0,
+                    Modifier.width(SCORE_PILL_WIDTH),
+                )
+                LabeledPill(De.TRUMP_LABEL, Modifier.width(INFO_PILL_WIDTH)) {
+                    TrumpValue(snapshot.trumpChoice.takeIf { showTrump })
                 }
             }
         }
 
-        Row(
-            Modifier
-                .clip(CircleShape)
-                .background(Color.Black.copy(alpha = 0.35f))
-                .padding(horizontal = 8.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text("♛", color = TableStyle.gold, fontSize = 11.sp)
-            Text(hakemName, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
-        }
+        Spacer(Modifier.weight(1f))
 
-        Text(
-            "${snapshot.handNumber}",
-            color = TableStyle.gold,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .clip(CircleShape)
-                .background(Color.Black.copy(alpha = 0.35f))
-                .padding(horizontal = 8.dp, vertical = 6.dp),
-        )
+        RoundBadge(snapshot.handNumber, snapshot.pointsToWin)
     }
 }
 
-/** A narrow score chip: caption on top, "mine : theirs" below. */
+/** The declaration: suit symbol + name, or high/low with an arrow. */
 @Composable
-private fun ScoreChip(title: String, mine: Int, theirs: Int) {
+private fun TrumpValue(choice: TrumpChoice?) {
+    when (choice) {
+        is TrumpChoice.OfSuit -> Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                choice.suit.symbol,
+                color = if (choice.suit.isRed) Color(1f, 0.45f, 0.45f) else Color.White,
+                fontSize = 13.sp,
+            )
+            Text(
+                choice.suit.germanName,
+                color = Color.White,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+            )
+        }
+
+        TrumpChoice.High -> Text(
+            "↑ ${De.HIGH}",
+            color = Color(0.4f, 0.85f, 0.5f),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+        )
+
+        TrumpChoice.Low -> Text(
+            "↓ ${De.LOW}",
+            color = Color(1f, 0.7f, 0.3f),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+        )
+
+        // Placeholder before the declaration so the cluster doesn't jump.
+        null -> Text("–", color = Color.White.copy(alpha = 0.5f), fontSize = 13.sp)
+    }
+}
+
+/**
+ * Two-line round display at the trailing edge: "Runde" over "1/3"
+ * (current round / points needed to win).
+ */
+@Composable
+private fun RoundBadge(handNumber: Int, pointsToWin: Int) {
     Column(
         Modifier
-            .clip(RoundedCornerShape(9.dp))
+            .clip(RoundedCornerShape(10.dp))
             .background(Color.Black.copy(alpha = 0.35f))
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .padding(horizontal = 10.dp, vertical = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(De.ROUND_WORD, color = Color.White.copy(alpha = 0.7f), fontSize = 9.sp, fontWeight = FontWeight.SemiBold)
+        Text("$handNumber/$pointsToWin", color = TableStyle.gold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+/** A pill with a small explanatory label above its value. */
+@Composable
+private fun LabeledPill(label: String, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Column(
+        modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(Color.Black.copy(alpha = 0.35f))
+            .padding(horizontal = 10.dp, vertical = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(1.dp),
+    ) {
+        Text(label, color = Color.White.copy(alpha = 0.7f), fontSize = 9.sp, fontWeight = FontWeight.SemiBold)
+        content()
+    }
+}
+
+/** A score pill: caption on top, "mine : theirs" below (own team gold). */
+@Composable
+private fun ScorePill(title: String, mine: Int, theirs: Int, modifier: Modifier = Modifier) {
+    Column(
+        modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(Color.Black.copy(alpha = 0.35f))
+            .padding(horizontal = 10.dp, vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(title, color = Color.White.copy(alpha = 0.7f), fontSize = 9.sp, fontWeight = FontWeight.SemiBold)
@@ -342,6 +402,9 @@ private fun ScoreChip(title: String, mine: Int, theirs: Int) {
         }
     }
 }
+
+private val SCORE_PILL_WIDTH = 72.dp
+private val INFO_PILL_WIDTH = 132.dp
 
 /** Card size used inside overlays, where space is tight. */
 val OverlayCardWidth: Dp = 52.dp

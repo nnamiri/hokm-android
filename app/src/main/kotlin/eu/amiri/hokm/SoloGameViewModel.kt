@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import eu.amiri.hokm.data.BotNames
 import eu.amiri.hokm.data.SavedGame
 import eu.amiri.hokm.data.SavedGameStore
 import eu.amiri.hokm.data.SettingsStore
@@ -52,6 +53,17 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
     var canResume by mutableStateOf(value = saveStore.hasSavedGame)
         private set
 
+    /** Bot names by seat, so the HUD can say "Hakem: Bot Darya". */
+    var botNames by mutableStateOf<Map<Seat, String>>(emptyMap())
+        private set
+
+    fun name(of: Seat): String =
+        if (of == humanSeat) "Du" else botNames[of] ?: "Gegner"
+
+    fun hasSeenTableCoach(playerCount: Int) = settings.hasSeenTableCoach(playerCount)
+
+    fun markTableCoachSeen(playerCount: Int) = settings.markTableCoachSeen(playerCount)
+
     /** True until the tutorial has been seen once – it then opens on first launch. */
     var needsTutorial by mutableStateOf(!settings.hasSeenTutorial)
         private set
@@ -74,6 +86,8 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
         gameRecorded = false
 
         val seats = if (players == 2) listOf(Seat.SOUTH, Seat.WEST) else Seat.entries.toList()
+        val botSeats = seats.filter { it != humanSeat }
+        botNames = botSeats.zip(BotNames.random(botSeats.size)).toMap()
         val draw = AceDraw.draw(seats)
         game = HokmGame(firstHakem = draw.hakem, rules = HokmRules(playerCount = players))
         started = true
@@ -95,6 +109,9 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
         recordedHands.clear()
         recordedHands.addAll(saved.recordedHands)
         gameRecorded = false
+        botNames = saved.botNames.mapNotNull { (seat, name) ->
+            runCatching { Seat.valueOf(seat) }.getOrNull()?.let { it to name }
+        }.toMap()
 
         game = HokmGame(saved.state)
         started = true
@@ -199,6 +216,7 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
                     handsWonThisGame = handsWonThisGame,
                     sweepsThisGame = sweepsThisGame,
                     recordedHands = recordedHands.toList(),
+                    botNames = botNames.mapKeys { it.key.name },
                 ),
             )
             canResume = true
