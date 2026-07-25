@@ -160,14 +160,16 @@ private fun TutorialPage(page: Int) {
         }
 
         1 -> PageBody(De.OB2_TITLE, De.OB2_TEXT) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 // Centered overlapping stack
                 Box(contentAlignment = Alignment.Center) {
                     val overlap = 22.dp
                     val count = 5
                     val totalWidth = OverlayCardWidth + overlap * (count - 1)
                     
-                    // We wrap in a Box of totalWidth to ensure Box(Alignment.Center) has a base
                     Box(Modifier.width(totalWidth)) {
                         listOf(
                             Card(Rank.ACE, Suit.SPADES),
@@ -180,12 +182,14 @@ private fun TutorialPage(page: Int) {
                         }
                     }
                 }
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(14.dp))
                 Row(
+                    Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.Center,
                 ) {
                     Text("♛", color = TableStyle.gold, fontSize = 16.sp)
+                    Spacer(Modifier.width(8.dp))
                     Text(
                         "${De.TRUMP_LABEL}: ♠ ${Suit.SPADES.germanName}",
                         color = Color.White,
@@ -244,11 +248,11 @@ private fun PageBody(title: String, text: String, illustration: @Composable () -
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
-            Modifier.fillMaxWidth().height(130.dp),
+            Modifier.fillMaxWidth().height(150.dp),
             contentAlignment = Alignment.Center,
         ) { illustration() }
 
-        Spacer(Modifier.height(22.dp))
+        Spacer(Modifier.height(20.dp))
         Text(
             title,
             color = Color.White,
