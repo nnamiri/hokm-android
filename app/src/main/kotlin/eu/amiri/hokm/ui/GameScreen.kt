@@ -145,7 +145,7 @@ fun GameScreen(vm: SoloGameViewModel) {
 
             // Own row: badge, turn hint, fanned hand.
             Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                PlayerBadge(snapshot.seat, De.YOU, snapshot, showCards = false)
+                PlayerBadge(snapshot.seat, vm.name(snapshot.seat), snapshot, showCards = false)
                 turnHint(snapshot, vm)?.let {
                     Text(
                         it,

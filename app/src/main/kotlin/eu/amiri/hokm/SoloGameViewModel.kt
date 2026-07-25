@@ -12,6 +12,7 @@ import eu.amiri.hokm.data.SavedGameStore
 import eu.amiri.hokm.data.SettingsStore
 import eu.amiri.hokm.data.StatsStore
 import eu.amiri.hokm.engine.*
+import eu.amiri.hokm.ui.De
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -53,12 +54,24 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
     var canResume by mutableStateOf(value = saveStore.hasSavedGame)
         private set
 
-    /** Bot names by seat, so the HUD can say "Hakem: Bot Darya". */
-    var botNames by mutableStateOf<Map<Seat, String>>(emptyMap())
+    /**
+     * Display name per seat, including our own – the same shape the iOS
+     * `SoloTransport` sends in its welcome message. The HUD reads it so the
+     * hakem pill can say "Bot Darya" instead of a bare "Gegner".
+     */
+    var names by mutableStateOf<Map<Seat, String>>(emptyMap())
         private set
 
-    fun name(of: Seat): String =
-        if (of == humanSeat) "Du" else botNames[of] ?: "Gegner"
+    fun name(of: Seat): String = names[of] ?: De.OPPONENTS
+
+    /** Fresh random bot names for every seat that is not ours, as on iOS. */
+    private fun assignNames(seats: List<Seat>) {
+        val botSeats = seats.filter { it != humanSeat }
+        names = buildMap {
+            put(humanSeat, De.YOU)
+            putAll(botSeats.zip(BotNames.random(botSeats.size)))
+        }
+    }
 
     fun hasSeenTableCoach(playerCount: Int) = settings.hasSeenTableCoach(playerCount)
 
@@ -86,8 +99,7 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
         gameRecorded = false
 
         val seats = if (players == 2) listOf(Seat.SOUTH, Seat.WEST) else Seat.entries.toList()
-        val botSeats = seats.filter { it != humanSeat }
-        botNames = botSeats.zip(BotNames.random(botSeats.size)).toMap()
+        assignNames(seats)
         val draw = AceDraw.draw(seats)
         game = HokmGame(firstHakem = draw.hakem, rules = HokmRules(playerCount = players))
         started = true
@@ -109,11 +121,22 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
         recordedHands.clear()
         recordedHands.addAll(saved.recordedHands)
         gameRecorded = false
-        botNames = saved.botNames.mapNotNull { (seat, name) ->
+
+        val restored = HokmGame(saved.state)
+        game = restored
+        // Keep the opponents the game was left with. Saves written before the
+        // names existed (or a partial map) fall back to fresh ones, the way
+        // iOS re-rolls them on every start.
+        val savedNames = saved.botNames.mapNotNull { (seat, name) ->
             runCatching { Seat.valueOf(seat) }.getOrNull()?.let { it to name }
         }.toMap()
+        val activeSeats = restored.activeSeats
+        if (activeSeats.all { it == humanSeat || it in savedNames }) {
+            names = savedNames + (humanSeat to De.YOU)
+        } else {
+            assignNames(activeSeats)
+        }
 
-        game = HokmGame(saved.state)
         started = true
         paused = false
         publish()
@@ -216,7 +239,8 @@ class SoloGameViewModel(app: Application) : AndroidViewModel(app) {
                     handsWonThisGame = handsWonThisGame,
                     sweepsThisGame = sweepsThisGame,
                     recordedHands = recordedHands.toList(),
-                    botNames = botNames.mapKeys { it.key.name },
+                    // Only the bots; our own name is a UI string, not state.
+                    botNames = names.filterKeys { it != humanSeat }.mapKeys { it.key.name },
                 ),
             )
             canResume = true
